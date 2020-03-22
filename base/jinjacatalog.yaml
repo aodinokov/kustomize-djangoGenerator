@@ -1,0 +1,8 @@
+apiVersion: someteam.example.com/v1
+kind: JinjaCatalog
+metadata:
+  name: base
+data:
+  name_base: x
+  age_base: 25
+  user: alixe_base

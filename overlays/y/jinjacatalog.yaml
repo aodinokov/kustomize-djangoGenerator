@@ -1,0 +1,18 @@
+apiVersion: someteam.example.com/v1
+kind: JinjaCatalog
+metadata:
+  name: overlay-y
+resources:
+- config_root: ../../base
+data:
+  name: x
+  age: 25
+  user: alixe
+jinja_template: |
+  apiVersion: {{ config.apiVersion }}
+  kind: JinjaCatalog
+  metadata:
+    name: {{ config.metadata.name }}
+  data:
+    {{ functions.indent(2, functions.yaml_dump(functions.dict_update(config.resources[0].data, data))) }}
+

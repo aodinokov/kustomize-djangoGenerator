@@ -1,0 +1,17 @@
+resources:
+- ../../base
+- jinjacatalog.yaml
+namePrefix: dev-
+nameSuffix: -v1
+transformers:
+  - jinjacatalog.yaml
+configMapGenerator:
+- name: my-configmap
+  behavior: merge
+  files:
+  - plumbing.properties
+  - secret.properties
+generators:
+  - testJinjaGenerator.yaml
+transformers:
+  - jinjacatalog.yaml

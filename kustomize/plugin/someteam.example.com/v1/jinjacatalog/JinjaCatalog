@@ -1,0 +1,192 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import copy
+import yaml
+import textwrap
+from jinja2 import Environment
+
+#functions for globals
+def yaml_dump(y):
+    #sys.stderr.write("yaml_dump y={}\n".format(str(y)))
+    return yaml.dump(y, default_flow_style=False)
+
+def dict_update(p, c):
+    #sys.stderr.write("dict_update p={} c={}\n".format(str(p), str(c)))
+    p_copy = copy.deepcopy(p)
+    p_copy.update(c)
+    return p_copy
+
+def indent(i, s):
+    #sys.stderr.write("indent i={} s={}\n".format(str(i), str(s)))
+    return (' ' * i).join(s.splitlines(True))
+#-------------------------------------------------------------------
+def get_functions():
+    return {
+        'yaml_dump': yaml_dump,
+        'dict_update': dict_update,
+        'indent': indent, }
+
+def get_input():
+    input = []
+    for i in yaml.load_all(sys.stdin):
+        input.append(i)
+    return input
+
+def get_transformed_jinjacatalog(config_root):
+
+    global_obj = {
+        'functions': get_functions(),
+        'config_root': config_root}
+
+    with open(os.path.join(config_root, "jinjacatalog.yaml")) as f:
+        global_obj["config"] = yaml.load(f)
+    if  global_obj["config"] is None:
+        sys.exit("wasn't able to read jinjacatalog.yaml")
+
+    apiVersion = global_obj["config"].get("apiVersion")
+    kind = global_obj["config"].get("kind")
+    data = global_obj["config"].get("data")
+    resources = global_obj["config"].get("resources")
+    jinja_template = global_obj["config"].get("jinja_template")
+
+    if apiVersion is None:
+        sys.exit("wasn't able to find apiVersion")
+
+    if kind != "JinjaCatalog":
+        sys.exit("kind has not expected value")
+
+    if not data is None:
+        global_obj["data"] = data
+
+    if not resources is None:
+        for resource in resources:
+
+            resource_config_root = resource.get("config_root")
+            if resource_config_root is None:
+                sys.exit("resource must contain config_root")
+
+            resource_yaml = yaml.load(get_transformed_jinjacatalog(resource_config_root))
+            if resource_yaml is None:
+                sys.exit("couldn't ready yaml")
+
+            resource_kind = resource_yaml.get("kind")
+            resource_data = resource_yaml.get("data")
+
+            if resource_kind is None or resource_kind != "JinjaCatalog":
+                sys.exit("resource transformed not to JinjaCatalog kind")
+
+            if not resource_data is None:
+                resource["data"] = resource_data
+
+    if jinja_template is None:
+        global_obj["config"]["jinja_template"] = """
+apiVersion: {}
+kind: JinjaCatalog
+metadata:
+  name: {}
+data:
+  {{{{ functions.indent(2, functions.yaml_dump(data)) }}}}
+""".format(apiVersion, str(global_obj["config"]["metadata"]["name"]))
+
+    sys.stderr.write("rendering with global_obj={}\n".format(str(global_obj)))
+
+    env = Environment()
+    template = env.from_string(global_obj["config"]["jinja_template"])
+    rendered = template.render(global_obj)
+
+    sys.stderr.write("rendered ={}\n".format(str(rendered)))
+
+    return rendered
+
+# the major processor funtion
+def process_config(config_string, config_root):
+    sys.stderr.write("_process_file string={} root={}\n".format(str(config_string), str(config_root)))
+
+    global_obj = {
+        'functions': get_functions(), 
+        'config_root': config_root}
+
+    global_obj["config"] = yaml.load(config_string)
+    if global_obj["config"] is None:
+        sys.exit("wasn't able to read config")
+    sys.stderr.write("config = {}\n".format(str(global_obj["config"])))
+
+    config_kind = global_obj["config"].get("kind")
+    if config_kind is None:
+        sys.exit("config doesn't have kind field")
+    sys.stderr.write("config_kind = {}\n".format(str(config_kind)))
+
+    if config_kind == 'JinjaCatalog':
+        global_obj["input"] = get_input()
+
+        counter = 0
+        index = 0
+        metadata = {}
+
+        sys.stderr.write("looking for name {}\n".format(str(global_obj["config"]["metadata"]["name"])))
+
+        for i in global_obj["input"]:
+
+            i_kind = i.get("kind")
+            i_metadata = i.get("metadata")
+            i_metadata_name = None
+
+            if not i_metadata is None:
+                i_metadata_name = i_metadata.get("name")
+                sys.stderr.write("comparing with {}\n".format(str(i_metadata_name)))
+
+            if  not i_kind is None and i_kind == 'JinjaCatalog' and \
+                not i_metadata_name is None and global_obj["config"]["metadata"]["name"] in i_metadata_name:
+                # also we could compare data
+                if counter == 0:
+                    metadata = i.get("metadata")
+                    index = global_obj["input"].index(i)
+                else:
+                    sys.exit("input contains several JinjaCatalog with the same name. exiting")
+                counter = counter + 1
+
+        if counter == 0:
+            sys.exit("hasn't found JinjaCatalog with needed name. include one as a resource. exiting")
+
+        output = copy.deepcopy(global_obj["input"])
+        transformed_jinjacatalog = yaml.load(get_transformed_jinjacatalog(config_root))
+        transformed_jinjacatalog["metadata"] = metadata
+        sys.stderr.write("removing index {}\n".format(str(index)))
+        del output[index]
+        output.append(transformed_jinjacatalog)
+
+        for i in output:
+            i_str = yaml.dump(i, explicit_start = True, default_flow_style = False)
+
+            sys.stderr.write("dumping {}\n".format(str(i_str)))
+            print(i_str)
+
+    elif config_kind == 'JinjaGenerator':
+        resource_yaml = yaml.load(get_transformed_jinjacatalog(config_root))
+        if resource_yaml is None:
+            sys.exit("couldn't ready yaml")
+
+        resource_kind = resource_yaml.get("kind")
+        resource_data = resource_yaml.get("data")
+
+        if resource_kind is None or resource_kind != "JinjaCatalog":
+            sys.exit("resource transformed not to JinjaCatalog kind")
+
+        if not resource_data is None:
+            global_obj["data"] = resource_data
+
+        jinja_template = global_obj["config"].get("jinja_template")
+        if jinja_template is None:
+            sys.exit("mandatory field jinja_template is missed")
+
+        sys.stderr.write("rendering with global_obj={}\n".format(str(global_obj)))
+
+        env = Environment()
+        template = env.from_string(global_obj["config"]["jinja_template"])
+        print(template.render(global_obj))
+
+process_config(
+    os.environ['KUSTOMIZE_PLUGIN_CONFIG_STRING'],
+    os.environ['KUSTOMIZE_PLUGIN_CONFIG_ROOT'])

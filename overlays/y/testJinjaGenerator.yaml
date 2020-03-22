@@ -1,0 +1,14 @@
+apiVersion: someteam.example.com/v1
+kind: JinjaGenerator
+metadata:
+  name: whatever
+jinja_template: |
+  kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: jinja-configmap-test
+    annotations:
+      kustomize.config.k8s.io/needs-hash: "true"
+  data:
+    username: alice
+    password: "{{ data.user }}"
