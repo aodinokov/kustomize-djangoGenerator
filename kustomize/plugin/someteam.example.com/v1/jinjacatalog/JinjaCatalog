@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import logging
 import os
 import sys
 import copy
@@ -9,17 +10,17 @@ from jinja2 import Environment
 
 #functions for globals
 def yaml_dump(y):
-    #sys.stderr.write("yaml_dump y={}\n".format(str(y)))
+    logger.debug("yaml_dump y={}\n".format(str(y)))
     return yaml.dump(y, default_flow_style=False)
 
 def dict_update(p, c):
-    #sys.stderr.write("dict_update p={} c={}\n".format(str(p), str(c)))
+    logger.debug("dict_update p={} c={}\n".format(str(p), str(c)))
     p_copy = copy.deepcopy(p)
     p_copy.update(c)
     return p_copy
 
 def indent(i, s):
-    #sys.stderr.write("indent i={} s={}\n".format(str(i), str(s)))
+    logger.debug("indent i={} s={}\n".format(str(i), str(s)))
     return (' ' * i).join(s.splitlines(True))
 #-------------------------------------------------------------------
 def get_functions():
@@ -90,19 +91,19 @@ data:
   {{{{ functions.indent(2, functions.yaml_dump(data)) }}}}
 """.format(apiVersion, str(global_obj["config"]["metadata"]["name"]))
 
-    sys.stderr.write("rendering with global_obj={}\n".format(str(global_obj)))
+    logger.debug("rendering with global_obj={}\n".format(str(global_obj)))
 
     env = Environment()
     template = env.from_string(global_obj["config"]["jinja_template"])
     rendered = template.render(global_obj)
 
-    sys.stderr.write("rendered ={}\n".format(str(rendered)))
+    logger.debug("rendered ={}\n".format(str(rendered)))
 
     return rendered
 
 # the major processor funtion
 def process_config(config_string, config_root):
-    sys.stderr.write("_process_file string={} root={}\n".format(str(config_string), str(config_root)))
+    logger.debug("_process_file string={} root={}\n".format(str(config_string), str(config_root)))
 
     global_obj = {
         'functions': get_functions(), 
@@ -111,12 +112,12 @@ def process_config(config_string, config_root):
     global_obj["config"] = yaml.load(config_string)
     if global_obj["config"] is None:
         sys.exit("wasn't able to read config")
-    sys.stderr.write("config = {}\n".format(str(global_obj["config"])))
+    logger.debug("config = {}\n".format(str(global_obj["config"])))
 
     config_kind = global_obj["config"].get("kind")
     if config_kind is None:
         sys.exit("config doesn't have kind field")
-    sys.stderr.write("config_kind = {}\n".format(str(config_kind)))
+    logger.debug("config_kind = {}\n".format(str(config_kind)))
 
     if config_kind == 'JinjaCatalog':
         global_obj["input"] = get_input()
@@ -125,7 +126,7 @@ def process_config(config_string, config_root):
         index = 0
         metadata = {}
 
-        sys.stderr.write("looking for name {}\n".format(str(global_obj["config"]["metadata"]["name"])))
+        logger.debug("looking for name {}\n".format(str(global_obj["config"]["metadata"]["name"])))
 
         for i in global_obj["input"]:
 
@@ -135,7 +136,7 @@ def process_config(config_string, config_root):
 
             if not i_metadata is None:
                 i_metadata_name = i_metadata.get("name")
-                sys.stderr.write("comparing with {}\n".format(str(i_metadata_name)))
+                logger.debug("comparing with {}\n".format(str(i_metadata_name)))
 
             if  not i_kind is None and i_kind == 'JinjaCatalog' and \
                 not i_metadata_name is None and global_obj["config"]["metadata"]["name"] in i_metadata_name:
@@ -153,14 +154,14 @@ def process_config(config_string, config_root):
         output = copy.deepcopy(global_obj["input"])
         transformed_jinjacatalog = yaml.load(get_transformed_jinjacatalog(config_root))
         transformed_jinjacatalog["metadata"] = metadata
-        sys.stderr.write("removing index {}\n".format(str(index)))
+        logger.debug("removing index {}\n".format(str(index)))
         del output[index]
         output.append(transformed_jinjacatalog)
 
         for i in output:
             i_str = yaml.dump(i, explicit_start = True, default_flow_style = False)
 
-            sys.stderr.write("dumping {}\n".format(str(i_str)))
+            logger.debug("dumping {}\n".format(str(i_str)))
             print(i_str)
 
     elif config_kind == 'JinjaGenerator':
@@ -181,12 +182,26 @@ def process_config(config_string, config_root):
         if jinja_template is None:
             sys.exit("mandatory field jinja_template is missed")
 
-        sys.stderr.write("rendering with global_obj={}\n".format(str(global_obj)))
+        logger.debug("rendering with global_obj={}\n".format(str(global_obj)))
 
         env = Environment()
         template = env.from_string(global_obj["config"]["jinja_template"])
         print(template.render(global_obj))
 
+# configure logger
+logger = logging.getLogger('jinjaPlugin')
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+if os.environ.get('JINJA_DEBUG') is None:
+	ch.setLevel(logging.ERROR)
+else:
+	ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+# do the actual work
 process_config(
     os.environ['KUSTOMIZE_PLUGIN_CONFIG_STRING'],
     os.environ['KUSTOMIZE_PLUGIN_CONFIG_ROOT'])
+
