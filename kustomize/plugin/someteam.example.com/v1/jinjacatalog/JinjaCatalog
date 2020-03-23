@@ -132,6 +132,34 @@ def process_JinjaGenerator(global_obj):
     template = env.from_string(config_jinjaTemplate)
     print(template.render(global_obj))
 
+def process_JinjaTransformer(global_obj):
+    global_obj["input"] = get_input()
+
+    config_jinjaCatalog = global_obj["config"].get("jinjaCatalog")
+    if config_jinjaCatalog is None:
+        sys.exit("mandatory field jinjaCatalog is missed")
+
+    config_jinjaTemplate = global_obj["config"].get("jinjaTemplate")
+    if config_jinjaTemplate is None:
+        sys.exit("mandatory field jinjaTemplate is missed")
+
+    jinjaCatalog_yaml = yaml.load(get_renderred_JinjaCatalog(global_obj['config_root'], config_jinjaCatalog))
+    if jinjaCatalog_yaml is None:
+        sys.exit("couldn't ready yaml")
+
+    jinjaCatalog_yaml_kind = jinjaCatalog_yaml.get("kind")
+
+    if jinjaCatalog_yaml_kind is None or jinjaCatalog_yaml_kind != "JinjaCatalog":
+        sys.exit("resource transformed not to JinjaCatalog kind")
+
+    global_obj["catalog"] = jinjaCatalog_yaml
+
+    logger.debug("rendering with global_obj={}\n".format(str(global_obj)))
+
+    env = Environment()
+    template = env.from_string(config_jinjaTemplate)
+    print(template.render(global_obj))
+
 # the main configuration processing function
 def process_config(config_root, config_string):
     logger.debug("process_config config_root={}, config_string:\n{}\n".format(str(config_root), str(config_string)))
@@ -152,6 +180,8 @@ def process_config(config_root, config_string):
 
     if config_kind == 'JinjaGenerator':
         process_JinjaGenerator(global_obj)
+    elif config_kind == "JinjaTransformer":
+        process_JinjaTransformer(global_obj)
 
 # configure logger
 logger = logging.getLogger('jinjaPlugin')
