@@ -1,6 +1,5 @@
 resources:
 - ../../base
-- jinjacatalog.yaml
 namePrefix: dev-
 nameSuffix: -v1
 configMapGenerator:
@@ -11,5 +10,3 @@ configMapGenerator:
   - secret.properties
 generators:
 - testJinjaGenerator.yaml
-transformers:
-- jinjacatalog.yaml

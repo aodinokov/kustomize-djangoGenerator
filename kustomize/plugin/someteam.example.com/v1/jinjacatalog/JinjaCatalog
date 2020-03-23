@@ -21,12 +21,23 @@ def dict_update(p, c):
 def indent(i, s):
     logger.debug("indent i={} s={}\n".format(str(i), str(s)))
     return (' ' * i).join(s.splitlines(True))
+
+def catalog_render(name, data):
+    return """
+apiVersion: someteam.example.com/v1 
+kind: JinjaCatalog
+metadata:
+  name: {}
+data:
+  {}
+""".format(name, indent(2, yaml_dump(data)))
 #-------------------------------------------------------------------
 def get_functions():
     return {
         'yaml_dump': yaml_dump,
         'dict_update': dict_update,
-        'indent': indent, }
+        'indent': indent, 
+        'catalog_render': catalog_render, }
 
 def get_input():
     input = []

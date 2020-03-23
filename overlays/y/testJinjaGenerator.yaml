@@ -4,6 +4,8 @@ metadata:
   name: whatever
 jinjaCatalog: jinjacatalog.yaml
 jinjaTemplate: |
+  {{ functions.catalog_render("overlay-y", data) }}
+  ---
   kind: ConfigMap
   apiVersion: v1
   metadata:
