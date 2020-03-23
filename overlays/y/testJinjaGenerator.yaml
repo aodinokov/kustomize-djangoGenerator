@@ -4,7 +4,7 @@ metadata:
   name: whatever
 jinjaCatalog: jinjacatalog.yaml
 jinjaTemplate: |
-  {{ functions.catalog_render("overlay-y", data) }}
+  {{ functions.yaml_dump(catalog) }}
   ---
   kind: ConfigMap
   apiVersion: v1
@@ -14,7 +14,7 @@ jinjaTemplate: |
       kustomize.config.k8s.io/needs-hash: "true"
   data:
     username: alice
-    password: "{{ data.user }}"
+    password: "{{ catalog.data.user }}"
   ---
   kind: ConfigMap
   apiVersion: v1

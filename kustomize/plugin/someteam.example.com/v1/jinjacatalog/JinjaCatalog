@@ -22,22 +22,12 @@ def indent(i, s):
     logger.debug("indent i={} s={}\n".format(str(i), str(s)))
     return (' ' * i).join(s.splitlines(True))
 
-def catalog_render(name, data):
-    return """
-apiVersion: someteam.example.com/v1 
-kind: JinjaCatalog
-metadata:
-  name: {}
-data:
-  {}
-""".format(name, indent(2, yaml_dump(data)))
 #-------------------------------------------------------------------
 def get_functions():
     return {
         'yaml_dump': yaml_dump,
         'dict_update': dict_update,
-        'indent': indent, 
-        'catalog_render': catalog_render, }
+        'indent': indent, }
 
 def get_input():
     input = []
@@ -177,13 +167,11 @@ def process_JinjaGenerator(global_obj):
         sys.exit("couldn't ready yaml")
 
     jinjaCatalog_yaml_kind = jinjaCatalog_yaml.get("kind")
-    jinjaCatalog_yaml_data = jinjaCatalog_yaml.get("data")
 
     if jinjaCatalog_yaml_kind is None or jinjaCatalog_yaml_kind != "JinjaCatalog":
         sys.exit("resource transformed not to JinjaCatalog kind")
 
-    if not jinjaCatalog_yaml_data is None:
-        global_obj["data"] = jinjaCatalog_yaml_data
+    global_obj["catalog"] = jinjaCatalog_yaml
 
     logger.debug("rendering with global_obj={}\n".format(str(global_obj)))
 
