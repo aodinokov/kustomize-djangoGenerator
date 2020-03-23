@@ -6,3 +6,10 @@ data:
   name_base: x
   age_base: 25
   user: alixe_base
+jinjaTemplate: |
+  apiVersion: {{ config.apiVersion }}
+  kind: JinjaCatalog
+  metadata:
+    name: {{ config.metadata.name }}
+  data:
+    {{ functions.indent(2, functions.yaml_dump(data)) }}

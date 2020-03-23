@@ -2,7 +2,8 @@ apiVersion: someteam.example.com/v1
 kind: JinjaGenerator
 metadata:
   name: whatever
-jinja_template: |
+jinjaCatalog: jinjacatalog.yaml
+jinjaTemplate: |
   kind: ConfigMap
   apiVersion: v1
   metadata:

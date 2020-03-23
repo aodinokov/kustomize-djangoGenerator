@@ -3,8 +3,6 @@ resources:
 - jinjacatalog.yaml
 namePrefix: dev-
 nameSuffix: -v1
-transformers:
-  - jinjacatalog.yaml
 configMapGenerator:
 - name: my-configmap
   behavior: merge
@@ -12,6 +10,6 @@ configMapGenerator:
   - plumbing.properties
   - secret.properties
 generators:
-  - testJinjaGenerator.yaml
+- testJinjaGenerator.yaml
 transformers:
-  - jinjacatalog.yaml
+- jinjacatalog.yaml

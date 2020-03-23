@@ -2,17 +2,17 @@ apiVersion: someteam.example.com/v1
 kind: JinjaCatalog
 metadata:
   name: overlay-y
-resources:
-- config_root: ../../base
+parents:
+- root: ../../base
 data:
   name: x
   age: 25
   user: alixe
-jinja_template: |
+jinjaTemplate: |
   apiVersion: {{ config.apiVersion }}
   kind: JinjaCatalog
   metadata:
     name: {{ config.metadata.name }}
   data:
-    {{ functions.indent(2, functions.yaml_dump(functions.dict_update(config.resources[0].data, data))) }}
+    {{ functions.indent(2, functions.yaml_dump(functions.dict_update(config.parents[0].data, data))) }}
 
