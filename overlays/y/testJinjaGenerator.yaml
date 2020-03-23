@@ -12,3 +12,13 @@ jinja_template: |
   data:
     username: alice
     password: "{{ data.user }}"
+  ---
+  kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: jinja-configmap-test2
+    annotations:
+      kustomize.config.k8s.io/needs-hash: "true"
+  data:
+    username: alice
+
