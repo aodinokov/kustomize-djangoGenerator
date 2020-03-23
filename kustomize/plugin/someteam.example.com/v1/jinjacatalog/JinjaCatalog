@@ -106,53 +106,6 @@ def get_renderred_JinjaCatalog(config_root, config_jinjaCatalog):
 
     return render_JinjaCatalog(global_obj)
 
-def process_JinjaCatalog(global_obj):
-
-    global_obj["input"] = get_input()
-
-    counter = 0
-    index = 0
-    metadata = {}
-
-    logger.debug("looking for name {}\n".format(str(global_obj["config"]["metadata"]["name"])))
-
-    for i in global_obj["input"]:
-
-        i_kind = i.get("kind")
-        i_metadata = i.get("metadata")
-        i_metadata_name = None
-
-        if not i_metadata is None:
-            i_metadata_name = i_metadata.get("name")
-            
-            logger.debug("comparing with {}\n".format(str(i_metadata_name)))
-
-            if  not i_kind is None and i_kind == 'JinjaCatalog' and \
-                not i_metadata_name is None and global_obj["config"]["metadata"]["name"] in i_metadata_name:
-                # also we could compare data
-                if counter == 0:
-                    metadata = i.get("metadata")
-                    index = global_obj["input"].index(i)
-                else:
-                    sys.exit("input contains several JinjaCatalog with the same name. exiting")
-                counter = counter + 1
-
-    if counter == 0:
-        sys.exit("hasn't found JinjaCatalog with needed name. include one as a resource. exiting")
-
-    output = copy.deepcopy(global_obj["input"])
-    transformed_jinjacatalog = yaml.load(render_JinjaCatalog(global_obj))
-    transformed_jinjacatalog["metadata"] = metadata
-    logger.debug("removing index {}\n".format(str(index)))
-    del output[index]
-    output.append(transformed_jinjacatalog)
-
-    for i in output:
-        i_str = yaml.dump(i, explicit_start = True, default_flow_style = False)
-
-        logger.debug("dumping {}\n".format(str(i_str)))
-        print(i_str)
-
 def process_JinjaGenerator(global_obj):
     config_jinjaCatalog = global_obj["config"].get("jinjaCatalog")
     if config_jinjaCatalog is None:
@@ -197,9 +150,7 @@ def process_config(config_root, config_string):
         sys.exit("config doesn't have kind field - exiting")
     logger.debug("config.kind = {}\n".format(str(config_kind)))
 
-    if config_kind == 'JinjaCatalog':
-        process_JinjaCatalog(global_obj)
-    elif config_kind == 'JinjaGenerator':
+    if config_kind == 'JinjaGenerator':
         process_JinjaGenerator(global_obj)
 
 # configure logger
