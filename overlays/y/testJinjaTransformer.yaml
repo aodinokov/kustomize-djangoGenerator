@@ -5,6 +5,10 @@ metadata:
 jinjaCatalog: jinjacatalog.yaml
 jinjaTemplate: |
   {% for i in resources %}
-  {{ functions.yaml_dump(i) }}
+  {% if 'dev-jinja-configmap-test-v1' == i.metadata.name %}
+  {{    functions.yaml_dump(functions.dict_update(i, catalog.data)) }}
+  {% else %}
+  {{    functions.yaml_dump(i) }}
+  {% endif %}
   ---
   {% endfor %}
