@@ -6,7 +6,7 @@ jinjaCatalog: jinjacatalog.yaml
 jinjaTemplate: |
   {% for i in resources %}
   {%    if 'dev-jinja-configmap-test-v1' == i.metadata.name %}
-  {{       functions.yaml_dump(functions.dict_update(i, catalog.data)) }}
+  {{       functions.yaml_dump(functions.dict_setByPath(i, "data/password", catalog.data.name_base)) }}
   {%    else %}
   {{       functions.yaml_dump(i) }}
   {%    endif %}

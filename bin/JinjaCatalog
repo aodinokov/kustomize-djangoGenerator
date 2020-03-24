@@ -33,7 +33,7 @@ def dict_setByPath(dataDict, path, value):
     logger.debug("dict_setByPath dataDict={} path={} value={}\n".format(str(dataDict), str(path), str(value)))
     mapList = path.split('/')
     dataDict_copy = copy.deepcopy(dataDict)
-    getFromDict(dataDict_copy, mapList[:-1])[mapList[-1]] = value
+    reduce(operator.getitem, mapList[:-1], dataDict_copy)[mapList[-1]] = value
     return dataDict_copy
 
 def dict_update(dataDict1, dataDict2):
