@@ -6,28 +6,51 @@ import sys
 import copy
 import yaml
 from jinja2 import Environment
+from functools import reduce
+import operator
 
 #functions for globals
-def yaml_dump(y):
-    logger.debug("yaml_dump y={}\n".format(str(y)))
-    return yaml.dump(y, default_flow_style=False)
-
-def dict_update(p, c):
-    logger.debug("dict_update p={} c={}\n".format(str(p), str(c)))
-    p_copy = copy.deepcopy(p)
-    p_copy.update(c)
-    return p_copy
-
 def indent(i, s):
     logger.debug("indent i={} s={}\n".format(str(i), str(s)))
     return (' ' * i).join(s.splitlines(True))
 
+def yaml_load(y):
+    logger.debug("yaml_load y={}\n".format(str(y)))
+    return yaml.load(y)
+
+def yaml_dump(y):
+    logger.debug("yaml_dump y={}\n".format(str(y)))
+    return yaml.dump(y, default_flow_style=False)
+
+# taken from https://stackoverflow.com/questions/14692690/access-nested-dictionary-items-via-a-list-of-keys
+# can also use https://pypi.org/project/dpath/ 
+def dict_getByPath(dataDict, path):
+    logger.debug("dict_getByPath dataDict={} path={}\n".format(str(dataDict), str(path)))
+    mapList = path.split('/')
+    return reduce(operator.getitem, mapList, dataDict)
+        
+def dict_setByPath(dataDict, path, value):
+    logger.debug("dict_setByPath dataDict={} path={} value={}\n".format(str(dataDict), str(path), str(value)))
+    mapList = path.split('/')
+    dataDict_copy = copy.deepcopy(dataDict)
+    getFromDict(dataDict_copy, mapList[:-1])[mapList[-1]] = value
+    return dataDict_copy
+
+def dict_update(dataDict1, dataDict2):
+    logger.debug("dict_update dataDict1={} dataDict2={}\n".format(str(dataDict1), str(dataDict2)))
+    dataDict1_copy = copy.deepcopy(dataDict1)
+    dataDict1_copy.update(dataDict2)
+    return dataDict1_copy
+
 #-------------------------------------------------------------------
 def get_functions():
     return {
+        'indent': indent, 
+        'yaml_load': yaml_load,
         'yaml_dump': yaml_dump,
-        'dict_update': dict_update,
-        'indent': indent, }
+        'dict_getByPath': dict_getByPath,
+        'dict_setByPath': dict_setByPath, 
+        'dict_update': dict_update, }
 
 def get_input():
     input = []
