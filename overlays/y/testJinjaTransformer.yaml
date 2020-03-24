@@ -1,0 +1,10 @@
+apiVersion: someteam.example.com/v1
+kind: JinjaTransformer
+metadata:
+  name: whatever
+jinjaCatalog: jinjacatalog.yaml
+jinjaTemplate: |
+  {% for i in resources %}
+  {{ functions.yaml_dump(i) }}
+  ---
+  {% endfor %}

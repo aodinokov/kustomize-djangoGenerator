@@ -130,7 +130,11 @@ def render_JinjaGenerator(global_obj):
 
     env = Environment()
     template = env.from_string(config_jinjaTemplate)
-    return template.render(global_obj)
+    rendered =  template.render(global_obj)
+
+    logger.debug("rendered ={}\n".format(str(rendered)))
+
+    return rendered
 
 def render_JinjaTransformer(global_obj):
     global_obj["resources"] = get_input()
@@ -158,7 +162,7 @@ def process_config(config_root, config_string):
     if config_kind == 'JinjaGenerator':
         print(render_JinjaGenerator(global_obj))
     elif config_kind == "JinjaTransformer":
-        print(process_JinjaTransformer(global_obj))
+        print(render_JinjaTransformer(global_obj))
 
 # configure logger
 logger = logging.getLogger('jinjaPlugin')

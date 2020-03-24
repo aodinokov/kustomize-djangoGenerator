@@ -10,3 +10,5 @@ configMapGenerator:
   - secret.properties
 generators:
 - testJinjaGenerator.yaml
+transformers:
+- testJinjaTransformer.yaml
