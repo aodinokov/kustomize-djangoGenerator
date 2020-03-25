@@ -3,7 +3,7 @@ kind: JinjaCatalog
 metadata:
   name: base
 data:
-  name_base: x
+  name_base: base_x
   age_base: 25
   user: alixe_base
 jinjaTemplate: |

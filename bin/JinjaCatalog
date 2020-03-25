@@ -10,6 +10,12 @@ from functools import reduce
 import operator
 
 #functions for globals
+def convert_toStr(val):
+    return str(val)
+
+def convert_toInt(val):
+    return int(val)
+
 def indent(i, s):
     logger.debug("indent i={} s={}\n".format(str(i), str(s)))
     return (' ' * i).join(s.splitlines(True))
@@ -21,6 +27,14 @@ def yaml_load(y):
 def yaml_dump(y):
     logger.debug("yaml_dump y={}\n".format(str(y)))
     return yaml.dump(y, default_flow_style=False)
+
+def yaml_dumpAll(a):
+    logger.debug("yaml_dumpAll a={}\n".format(str(a)))
+    result = ''
+    for y in a:
+        result+=yaml.dump(y, default_flow_style=False)
+        result+='---\n'
+    return result
 
 # taken from https://stackoverflow.com/questions/14692690/access-nested-dictionary-items-via-a-list-of-keys
 # can also use https://pypi.org/project/dpath/ 
@@ -45,9 +59,12 @@ def dict_update(dataDict1, dataDict2):
 #-------------------------------------------------------------------
 def get_functions():
     return {
+        'convert_toStr': convert_toStr,
+        'convert_toItr': convert_toInt,
         'indent': indent, 
         'yaml_load': yaml_load,
         'yaml_dump': yaml_dump,
+        'yaml_dumpAll': yaml_dumpAll,
         'dict_getByPath': dict_getByPath,
         'dict_setByPath': dict_setByPath, 
         'dict_update': dict_update, }
