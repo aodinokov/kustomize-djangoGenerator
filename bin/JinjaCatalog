@@ -9,7 +9,7 @@ from jinja2 import Environment
 from functools import reduce
 import operator
 
-#functions for globals
+#functions for globals TODO: move thems to separate modules
 def convert_toStr(val):
     return str(val)
 
@@ -38,10 +38,21 @@ def yaml_dumpAll(a):
 
 # taken from https://stackoverflow.com/questions/14692690/access-nested-dictionary-items-via-a-list-of-keys
 # can also use https://pypi.org/project/dpath/ 
+def _dict_getByPath(dataDict, path):
+    mapList = path.split('/')
+    try:
+        return reduce(operator.getitem, mapList, dataDict)
+    except:
+        #TODO: catch only corrent exceptions
+        logger.error("filter_fieldExits error: {}\n".format(str(sys.exc_info()[0])))
+    return None
+
+def dict_deepCopy(dataDict):
+    return copy.deepcopy(dataDict)
+
 def dict_getByPath(dataDict, path):
     logger.debug("dict_getByPath dataDict={} path={}\n".format(str(dataDict), str(path)))
-    mapList = path.split('/')
-    return reduce(operator.getitem, mapList, dataDict)
+    return _obj_getObjByPath(dataDict, path)
         
 def dict_setByPath(dataDict, path, value):
     logger.debug("dict_setByPath dataDict={} path={} value={}\n".format(str(dataDict), str(path), str(value)))
@@ -56,7 +67,56 @@ def dict_update(dataDict1, dataDict2):
     dataDict1_copy.update(dataDict2)
     return dataDict1_copy
 
-#-------------------------------------------------------------------
+def filter_fieldExits(path):
+    logger.debug("filter_fieldExits path={}\n".format(str(path)))
+    def filter(dataDict):
+        return not _dict_getByPath(dataDict, path) is None
+    return filter
+        
+def filter_fieldEqual(path, val):
+    logger.debug("filter_fieldExits path={} val={}\n".format(str(path), str(val)))
+    def filter(dataDict):
+        # TODO: compare only leafs
+        if _dict_getByPath(dataDict, path) == val:
+            return True
+        return False
+    return filter
+
+def filter_operatorNot(filterToInvert):
+    def filter(dataDict):
+        return not filterToInvert(dataDict)
+    return filter
+
+def filter_operatorAnd(*args):
+    if len(args) < 2:
+        raise ValueError('filter_operatorAnd needs at least 2 arguments')
+
+    def filter(dataDict):
+        for i in args:
+            if i(dataDict):
+                return false
+        return true
+    return filter
+
+def filter_operatorOr(*args):
+    if len(args) < 2:
+        raise ValueError('filter_operatorOr needs at least 2 arguments')
+
+    def filter(dataDict):
+        res = False
+        for i in args:
+            if i(dataDict):
+                res = True
+        return res
+    return filter
+
+def filter_getMatchingIndexes(dataDictArray, filterToApply):
+    result = []
+    for i in range(len(dataDictArray)):
+        if filterToApply(dataDictArray[i]):
+            result.append(i)
+    return result
+
 def get_functions():
     return {
         'convert_toStr': convert_toStr,
@@ -67,8 +127,15 @@ def get_functions():
         'yaml_dumpAll': yaml_dumpAll,
         'dict_getByPath': dict_getByPath,
         'dict_setByPath': dict_setByPath, 
-        'dict_update': dict_update, }
-
+        'dict_update': dict_update, 
+        'dict_deepCopy': dict_deepCopy,
+        'filter_fieldExits': filter_fieldExits,
+        'filter_fieldEqual': filter_fieldEqual,
+        'filter_operatorNot': filter_operatorNot,
+        'filter_operatorAnd': filter_operatorAnd,
+        'filter_operatorOr': filter_operatorOr,
+        'filter_getMatchingIndexes': filter_getMatchingIndexes, }
+#-------------------------------------------------------------------
 def get_input():
     input = []
     for i in yaml.load_all(sys.stdin):
@@ -119,7 +186,6 @@ def render_JinjaCatalog(global_obj):
     logger.debug("rendered ={}\n".format(str(rendered)))
 
     return rendered
-
 
 def get_renderred_JinjaCatalog(config_root, config_jinjaCatalog):
 
@@ -191,6 +257,8 @@ def process_config(config_root, config_string):
         print(render_JinjaGenerator(global_obj))
     elif config_kind == "JinjaTransformer":
         print(render_JinjaTransformer(global_obj))
+    elif config_kind == 'JinjaCatalog':
+        print(render_JinjaCatalog(global_obj))
 
 # configure logger
 logger = logging.getLogger('jinjaPlugin')
