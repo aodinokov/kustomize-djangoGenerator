@@ -14,5 +14,5 @@ jinjaTemplate: |
   metadata:
     name: {{ config.metadata.name }}
   data:
-    {{ functions.indent(2, functions.yaml_dump(functions.dict_update(config.parents[0].data, data))) }}
+    {{ functions.indent(2, functions.yaml_dump(functions.dict_update(config.parents[0].obj.data, data))) }}
 

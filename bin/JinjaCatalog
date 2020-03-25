@@ -66,17 +66,12 @@ def render_JinjaCatalog(global_obj):
     parents = global_obj["config"].get("parents")
     jinjaTemplate = global_obj["config"].get("jinjaTemplate")
 
-    if apiVersion is None:
-        sys.exit("wasn't able to find apiVersion - exiting")
-
-    if kind is None:
-        sys.exit("wasn't able to find kind - exiting")
+    if apiVersion is None or kind is None or kind != "JinjaCatalog":
+        logger.debug("returning non JinjaCatalog yaml:\n{}\n".format(str(global_obj["config"])))
+        return global_obj["config"]
 
     if jinjaTemplate is None:
         sys.exit("wasn't able to find jinjaTemplate - exiting")
-
-    if kind != "JinjaCatalog":
-        sys.exit("kind has not expected value")
 
     if not data is None:
         global_obj["data"] = data
@@ -92,18 +87,11 @@ def render_JinjaCatalog(global_obj):
             if parent_jinjaCatalog is None:
                 parent_jinjaCatalog = 'jinjacatalog.yaml'
 
-            parent_yaml = yaml.load(get_renderred_JinjaCatalog(os.path.realpath(os.path.join(global_obj['config_root'], parent_root)), parent_jinjaCatalog))
-            if parent_yaml is None:
+            parent_obj = yaml.load(get_renderred_JinjaCatalog(os.path.realpath(os.path.join(global_obj['config_root'], parent_root)), parent_jinjaCatalog))
+            if parent_obj is None:
                 sys.exit("couldn't read yaml - for parent {} exiting".format(str(parent)))
 
-            parent_kind = parent_yaml.get("kind")
-            parent_data = parent_yaml.get("data")
-
-            if parent_kind is None or parent_kind != "JinjaCatalog":
-                sys.exit("parent transformed not to JinjaCatalog kind")
-
-            if not parent_data is None:
-                parent["data"] = parent_data
+            parent["obj"] = parent_obj
 
     logger.debug("rendering with global_obj={}\n".format(str(global_obj)))
 
