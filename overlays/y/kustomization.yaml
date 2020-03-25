@@ -12,3 +12,4 @@ generators:
 - testJinjaGenerator.yaml
 transformers:
 - testJinjaTransformer.yaml
+- testJinjaTransformer2.yaml

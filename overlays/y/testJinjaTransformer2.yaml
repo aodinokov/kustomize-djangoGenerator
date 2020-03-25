@@ -1,0 +1,11 @@
+apiVersion: someteam.example.com/v1
+kind: JinjaTransformer
+metadata:
+  name: whatever2
+jinjaCatalog: jinjacatalog.yaml
+jinjaTemplate: |
+  {% set context = {'resources': functions.dict_deepCopy(resources)} %}
+  {% for i in functions.filter_getMatchingIndexes(context.resources, functions.filter_operatorAnd(functions.filter_fieldExist("kind"), functions.filter_fieldEqual("kind", "ConfigMap"), functions.filter_fieldExist("metadata/name"), functions.filter_fieldEqual("metadata/name", "dev-jinja-configmap-test-v1"))) %}
+  {% if context.update({'resources': functions.dict_setByPath(context.resources, functions.convert_toStr(i), functions.dict_setByPath(context.resources[i], "data/password", catalog.data.name_base))}) %}{% endif %}
+  {% endfor %}
+  {{ functions.yaml_dumpAll(context.resources) }}
