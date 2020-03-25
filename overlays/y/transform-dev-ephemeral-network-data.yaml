@@ -11,6 +11,7 @@ jinjaTemplate: |
                 functions.filter_fieldEqual("kind", "Secret"), 
                 functions.filter_fieldExist("metadata/name"), 
                 functions.filter_fieldEqual("metadata/name", "dev-node1-bmc-secret-v1"))) %}
+  {% set corrected_yaml = functions.yaml_load(functions.dict_getByPath(context.resources, "{}/stringData".format(i|string))%}
   {% if context.update({'resources': functions.dict_setByPath(context.resources, "{}/stringData".format(i|string), catalog.data.name_base)}) %}{% endif %}
   {% endfor %}
   {{ functions.yaml_dumpAll(context.resources) }}
