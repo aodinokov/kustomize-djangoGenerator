@@ -11,9 +11,11 @@ import operator
 
 #functions for globals TODO: move thems to separate modules
 def convert_toStr(val):
+    logger.debug("convert_toStr val={}".format(str(val)))
     return str(val)
 
 def convert_toInt(val):
+    logger.debug("convert_toInt val={}".format(str(val)))
     return int(val)
 
 def indent(i, s):
@@ -39,7 +41,7 @@ def yaml_dumpAll(a):
 # taken from https://stackoverflow.com/questions/14692690/access-nested-dictionary-items-via-a-list-of-keys
 # can also use https://pypi.org/project/dpath/ 
 def _dict_getByPath(dataDict, path):
-    mapList = path.split('/')
+    mapList = [int(i) if i.isdigit() else i for i in path.split('/')]
     try:
         return reduce(operator.getitem, mapList, dataDict)
     except:
@@ -52,13 +54,14 @@ def dict_deepCopy(dataDict):
 
 def dict_getByPath(dataDict, path):
     logger.debug("dict_getByPath dataDict={} path={}\n".format(str(dataDict), str(path)))
-    return _obj_getObjByPath(dataDict, path)
+    return _dict_getByPath(dataDict, path)
         
 def dict_setByPath(dataDict, path, value):
     logger.debug("dict_setByPath dataDict={} path={} value={}\n".format(str(dataDict), str(path), str(value)))
-    mapList = path.split('/')
+    mapList = [int(i) if i.isdigit() else i for i in path.split('/')]
     dataDict_copy = copy.deepcopy(dataDict)
     reduce(operator.getitem, mapList[:-1], dataDict_copy)[mapList[-1]] = value
+    logger.debug("dict_setByPath dataDict_copy={}\n".format(str(dataDict_copy)))
     return dataDict_copy
 
 def dict_update(dataDict1, dataDict2):
@@ -67,19 +70,25 @@ def dict_update(dataDict1, dataDict2):
     dataDict1_copy.update(dataDict2)
     return dataDict1_copy
 
-def filter_fieldExits(path):
-    logger.debug("filter_fieldExits path={}\n".format(str(path)))
+def filter_fieldExist(path):
+    logger.debug("filter_fieldExist path={}\n".format(str(path)))
     def filter(dataDict):
-        return not _dict_getByPath(dataDict, path) is None
+        logger.debug("fieldExist path={} dataDict={}\n".format(str(path), str(dataDict)))
+        result = not _dict_getByPath(dataDict, path) is None
+        logger.debug("fieldExist result={}\n".format(str(result)))
+        return result
     return filter
         
 def filter_fieldEqual(path, val):
-    logger.debug("filter_fieldExits path={} val={}\n".format(str(path), str(val)))
+    logger.debug("filter_fieldEqual path={} val={}\n".format(str(path), str(val)))
     def filter(dataDict):
+        logger.debug("fieldEqual path={} dataDict={} val={}\n".format(str(path), str(dataDict), str(val)))
         # TODO: compare only leafs
+        result = False
         if _dict_getByPath(dataDict, path) == val:
-            return True
-        return False
+            result = True
+        logger.debug("fieldEqual result={}\n".format(str(result)))
+        return result
     return filter
 
 def filter_operatorNot(filterToInvert):
@@ -93,9 +102,9 @@ def filter_operatorAnd(*args):
 
     def filter(dataDict):
         for i in args:
-            if i(dataDict):
-                return false
-        return true
+            if not i(dataDict):
+                return False
+        return True
     return filter
 
 def filter_operatorOr(*args):
@@ -103,11 +112,10 @@ def filter_operatorOr(*args):
         raise ValueError('filter_operatorOr needs at least 2 arguments')
 
     def filter(dataDict):
-        res = False
         for i in args:
             if i(dataDict):
-                res = True
-        return res
+                return True
+        return False
     return filter
 
 def filter_getMatchingIndexes(dataDictArray, filterToApply):
@@ -115,6 +123,9 @@ def filter_getMatchingIndexes(dataDictArray, filterToApply):
     for i in range(len(dataDictArray)):
         if filterToApply(dataDictArray[i]):
             result.append(i)
+
+    logger.debug("filter_getMatchingIndexes result={}\n".format(str(result)))
+
     return result
 
 def get_functions():
@@ -129,7 +140,7 @@ def get_functions():
         'dict_setByPath': dict_setByPath, 
         'dict_update': dict_update, 
         'dict_deepCopy': dict_deepCopy,
-        'filter_fieldExits': filter_fieldExits,
+        'filter_fieldExist': filter_fieldExist,
         'filter_fieldEqual': filter_fieldEqual,
         'filter_operatorNot': filter_operatorNot,
         'filter_operatorAnd': filter_operatorAnd,
