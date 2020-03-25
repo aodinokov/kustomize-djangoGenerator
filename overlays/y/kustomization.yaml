@@ -1,5 +1,6 @@
 resources:
 - ../../base
+- secret.yaml
 namePrefix: dev-
 nameSuffix: -v1
 configMapGenerator:
@@ -9,7 +10,8 @@ configMapGenerator:
   - plumbing.properties
   - secret.properties
 generators:
-- testJinjaGenerator.yaml
+        #- testJinjaGenerator.yaml
 transformers:
-- testJinjaTransformer.yaml
-- testJinjaTransformer2.yaml
+        #- testJinjaTransformer.yaml
+        #- testJinjaTransformer2.yaml
+- transform-dev-ephemeral-network-data.yaml
