@@ -10,18 +10,6 @@ from functools import reduce
 import operator
 
 #functions for globals TODO: move thems to separate modules
-def convert_toStr(val):
-    logger.debug("convert_toStr val={}".format(str(val)))
-    return str(val)
-
-def convert_toInt(val):
-    logger.debug("convert_toInt val={}".format(str(val)))
-    return int(val)
-
-def indent(i, s):
-    logger.debug("indent i={} s={}\n".format(str(i), str(s)))
-    return (' ' * i).join(s.splitlines(True))
-
 def yaml_load(y):
     logger.debug("yaml_load y={}\n".format(str(y)))
     return yaml.load(y)
@@ -48,9 +36,6 @@ def _dict_getByPath(dataDict, path):
         #TODO: catch only corrent exceptions
         logger.error("filter_fieldExits error: {}\n".format(str(sys.exc_info()[0])))
     return None
-
-def dict_deepCopy(dataDict):
-    return copy.deepcopy(dataDict)
 
 def dict_getByPath(dataDict, path):
     logger.debug("dict_getByPath dataDict={} path={}\n".format(str(dataDict), str(path)))
@@ -130,16 +115,12 @@ def filter_getMatchingIndexes(dataDictArray, filterToApply):
 
 def get_functions():
     return {
-        'convert_toStr': convert_toStr,
-        'convert_toItr': convert_toInt,
-        'indent': indent, 
         'yaml_load': yaml_load,
         'yaml_dump': yaml_dump,
         'yaml_dumpAll': yaml_dumpAll,
         'dict_getByPath': dict_getByPath,
         'dict_setByPath': dict_setByPath, 
         'dict_update': dict_update, 
-        'dict_deepCopy': dict_deepCopy,
         'filter_fieldExist': filter_fieldExist,
         'filter_fieldEqual': filter_fieldEqual,
         'filter_operatorNot': filter_operatorNot,

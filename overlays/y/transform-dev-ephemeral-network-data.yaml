@@ -4,7 +4,7 @@ metadata:
   name: transform-dev-ephemeral-network-data
 jinjaCatalog: jinjacatalog.yaml
 jinjaTemplate: |
-  {% set context = {'resources': functions.dict_deepCopy(resources)} %}
+  {% set context = {'resources': resources} %}
   {% for i in functions.filter_getMatchingIndexes(context.resources, 
         functions.filter_operatorAnd(
                 functions.filter_fieldExist("kind"), 

@@ -12,4 +12,4 @@ jinjaTemplate: |
   metadata:
     name: {{ config.metadata.name }}
   data:
-    {{ functions.indent(2, functions.yaml_dump(data)) }}
+    {{ functions.yaml_dump(data)|indent(width=2, first=False) }}
