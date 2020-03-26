@@ -86,6 +86,16 @@ def crypt_decrypt(e):
     f = Fernet(crypt_getKey())
     return f.decrypt(base64.b64decode(e.encode())).decode()
 
+# vault-helper:
+# see more https://www.vaultproject.io/docs/commands/
+# https://github.com/hvac/hvac 
+# and https://hvac.readthedocs.io/en/stable/overview.html#getting-started
+def vault_getClient():
+    import hvac
+    # TODO: read some extended params from file if needed (in home dir or provided via env)
+    return hvac.Client(url = os.environ['VAULT_ADDR'],
+            token=os.environ['VAULT_TOKEN'])
+
 # taken from https://stackoverflow.com/questions/14692690/access-nested-dictionary-items-via-a-list-of-keys
 # can also use https://pypi.org/project/dpath/ 
 def _dict_getByPath(dataDict, path):
