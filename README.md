@@ -1,6 +1,6 @@
-# kustomize-jinjaPlugins
+# kustomize-jinjaPlugin
 
-PoC Kustomize generator and transformer plugins to show the power of Jinja
+PoC Kustomize generator and transformer (all-in-one) plugin to show the power of Jinja
 
 Note: base dir contains encrypted data. to run the example please use the following command:
 
