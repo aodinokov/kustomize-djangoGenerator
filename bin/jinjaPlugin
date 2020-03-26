@@ -190,6 +190,7 @@ def get_functions():
         'yaml_dumpAll': yaml_dumpAll,
         'crypt_encrypt': crypt_encrypt,
         'crypt_decrypt': crypt_decrypt,
+        'vault_getClient': vault_getClient,
         'dict_getByPath': dict_getByPath,
         'dict_setByPath': dict_setByPath, 
         'dict_update': dict_update, 
