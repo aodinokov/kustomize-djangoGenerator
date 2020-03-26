@@ -24,11 +24,12 @@ def yaml_orderedLoad(arg, _all=False, Loader=yaml.Loader, object_pairs_hook=Orde
     OrderedLoader.add_constructor(
         yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
         construct_mapping)
-    if _all:
+    if _all == True:
         return yaml.load_all(arg, OrderedLoader)
     return yaml.load(arg, OrderedLoader)
 
-def yaml_orderedDump(data, stream=None, Dumper=yaml.Dumper, **kwds):
+def yaml_orderedDump(data, _all=False, stream=None, Dumper=yaml.Dumper, **kwds):
+    # logger.debug("yaml_orderedDump _all={}\n".format(str(_all)))
     class OrderedDumper(Dumper):
         pass
     def _dict_representer(dumper, data):
@@ -36,6 +37,12 @@ def yaml_orderedDump(data, stream=None, Dumper=yaml.Dumper, **kwds):
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
             data.items())
     OrderedDumper.add_representer(OrderedDict, _dict_representer)
+    if _all == True:
+        result = ''
+        for y in data:
+            result+=yaml.dump(y, stream, OrderedDumper, **kwds)
+            result+='---\n'
+        return result
     return yaml.dump(data, stream, OrderedDumper, **kwds)
 
 # symmetric-encryption-helper: the basic functionality to decrypt/encrypt configential data
@@ -68,13 +75,9 @@ def yaml_dump(y):
     logger.debug("yaml_dump y={}\n".format(str(y)))
     return yaml_orderedDump(y, default_flow_style=False)
 
-def yaml_dumpAll(a):
-    logger.debug("yaml_dumpAll a={}\n".format(str(a)))
-    result = ''
-    for y in a:
-        result+=yaml_orderedDump(y, default_flow_style=False)
-        result+='---\n'
-    return result
+def yaml_dumpAll(y):
+    logger.debug("yaml_dumpAll y={}\n".format(str(y)))
+    return yaml_orderedDump(y, _all=True, default_flow_style=False)
 
 def crypt_encrypt(s):
     from cryptography.fernet import Fernet
@@ -107,17 +110,30 @@ def _dict_getByPath(dataDict, path):
         logger.error("filter_fieldExits error: {}\n".format(str(sys.exc_info()[0])))
     return None
 
-def dict_getByPath(dataDict, path):
-    logger.debug("dict_getByPath dataDict={} path={}\n".format(str(dataDict), str(path)))
-    return _dict_getByPath(dataDict, path)
-        
-def dict_setByPath(dataDict, path, value):
-    logger.debug("dict_setByPath dataDict={} path={} value={}\n".format(str(dataDict), str(path), str(value)))
-    mapList = [int(i) if i.isdigit() else i for i in path.split('/')]
-    dataDict_copy = copy.deepcopy(dataDict)
-    reduce(operator.getitem, mapList[:-1], dataDict_copy)[mapList[-1]] = value
-    logger.debug("dict_setByPath dataDict_copy={}\n".format(str(dataDict_copy)))
-    return dataDict_copy
+def dict_getByPath(dataDict, pathComplex, _all=False):
+    logger.debug("dict_getByPath dataDict={} path={}\n".format(str(dataDict), str(pathComplex)))
+    val = dataDict
+    pathList = pathComplex.split('|')
+    for i in range(len(pathList)):
+        res = _dict_getByPath(val, pathList[i])
+        if i == (len(pathList) - 1):
+            return res
+        val = yaml_orderedLoad(res, _all=_all)   # _all allows to parse yaml with many yamls as string in the field
+
+def dict_setByPath(dataDict, pathComplex, value, _all=False):
+    logger.debug("dict_setByPath dataDict={} path={} value={}\n".format(str(dataDict), str(pathComplex), str(value)))
+    res = value
+    pathList = pathComplex.split('|')
+    if (len(pathList) > 0):
+        mapList = [int(i) if i.isdigit() else i for i in pathList[0].split('/')]
+        res = copy.deepcopy(dataDict)
+        if len(pathList) == 1:
+            reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = value
+        else:
+            org = reduce(operator.getitem, mapList[:-1], dataDict)[mapList[-1]]
+            reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = \
+                    yaml_orderedDump(dict_setByPath(yaml_orderedLoad(org, _all=_all), pathList[1:].join('|'), value), default_flow_style=False, _all=_all)
+    return res
 
 def dict_update(dataDict1, dataDict2):
     logger.debug("dict_update dataDict1={} dataDict2={}\n".format(str(dataDict1), str(dataDict2)))
