@@ -6,10 +6,14 @@ data:
   name_base: base_x
   age_base: 25
   user: alixe_base
+  # use JINJA_CRYPT_PASSWORD="multipass" to decrypt
+  user_encrypted: Z0FBQUFBQmVmQ2Y1TmZoNUh0NWgtVW05OUdjdzFIeF9QY0ZtWjRUWWotY2JGZHdkN2hXc3JzcjlraHNtMjhKOEQyZ18zanMwb25ybzBCeDFVWjhHY2pRUzVyM1BmSXJmZkE9PQ==
 jinjaTemplate: |
   apiVersion: {{ config.apiVersion }}
   kind: JinjaCatalog
   metadata:
     name: {{ config.metadata.name }}
   data:
+    user_encrypted_new: {{ functions.crypt_encrypt(data.user) }}
+    user_decrypted: {{ functions.crypt_decrypt(data.user_encrypted) }}
     {{ functions.yaml_dump(data)|indent(width=2, first=False) }}

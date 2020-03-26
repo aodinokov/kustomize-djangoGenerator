@@ -2,6 +2,7 @@
 
 import logging
 import os
+import base64
 import sys
 import copy
 import yaml
@@ -10,7 +11,7 @@ from jinja2 import Environment
 from functools import reduce
 import operator
 
-# to avoid reordering of fields when read yaml, we need to use OrderedDict
+# yaml-helpers: to avoid reordering of fields when read yaml, we need to use OrderedDict
 # see
 # https://github.com/yaml/pyyaml/issues/110 and
 # https://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts
@@ -37,7 +38,28 @@ def yaml_orderedDump(data, stream=None, Dumper=yaml.Dumper, **kwds):
     OrderedDumper.add_representer(OrderedDict, _dict_representer)
     return yaml.dump(data, stream, OrderedDumper, **kwds)
 
-#functions for globals TODO: move thems to separate modules
+# symmetric-encryption-helper: the basic functionality to decrypt/encrypt configential data
+# see https://nitratine.net/blog/post/encryption-and-decryption-in-python/#what-is-symmetric-encryption
+def crypt_getKeyFromPassword(password_provided):
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+    password = password_provided.encode() # Convert to type bytes
+    salt = b'salt_' # CHANGE THIS - recommend using a key from os.urandom(16), must be of type bytes
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    return base64.urlsafe_b64encode(kdf.derive(password))
+
+def crypt_getKey():
+    return crypt_getKeyFromPassword(os.environ['JINJA_CRYPT_PASSWORD'])
+
+# functions for globals TODO: move thems to separate modules
 def yaml_load(y):
     logger.debug("yaml_load y={}\n".format(str(y)))
     return yaml_orderedLoad(y)
@@ -53,6 +75,16 @@ def yaml_dumpAll(a):
         result+=yaml_orderedDump(y, default_flow_style=False)
         result+='---\n'
     return result
+
+def crypt_encrypt(s):
+    from cryptography.fernet import Fernet
+    f = Fernet(crypt_getKey())
+    return base64.b64encode(f.encrypt(s.encode())).decode()
+
+def crypt_decrypt(e):
+    from cryptography.fernet import Fernet
+    f = Fernet(crypt_getKey())
+    return f.decrypt(base64.b64decode(e.encode())).decode()
 
 # taken from https://stackoverflow.com/questions/14692690/access-nested-dictionary-items-via-a-list-of-keys
 # can also use https://pypi.org/project/dpath/ 
@@ -146,6 +178,8 @@ def get_functions():
         'yaml_load': yaml_load,
         'yaml_dump': yaml_dump,
         'yaml_dumpAll': yaml_dumpAll,
+        'crypt_encrypt': crypt_encrypt,
+        'crypt_decrypt': crypt_decrypt,
         'dict_getByPath': dict_getByPath,
         'dict_setByPath': dict_setByPath, 
         'dict_update': dict_update, 
