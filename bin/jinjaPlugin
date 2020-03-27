@@ -135,41 +135,43 @@ def dict_update(dataDict1, dataDict2):
     return dataDict1_copy
 
 def filter_fieldExist(path):
-    def filter(dataDict):
+    def _exist(dataDict):
+        logger.debug("closure path={}\n".format(str(path)))
         return not _dict_getByPath(dataDict, path) is None
-    return logger_wrap(filter)
+    return logger_wrap(_exist)
         
 def filter_fieldEqual(path, val):
-    def filter(dataDict):
+    def _equal(dataDict):
+        logger.debug("closure path={} val={}\n".format(str(path),str(val)))
         if _dict_getByPath(dataDict, path) == val:
             result = True
         return False
-    return logger_wrap(filter)
+    return logger_wrap(_equal)
 
 def filter_operatorNot(filterToInvert):
-    def filter(dataDict):
+    def _not(dataDict):
         return not filterToInvert(dataDict)
-    return logger_wrap(filter)
+    return logger_wrap(_not)
 
 def filter_operatorAnd(*args):
     if len(args) < 2:
         raise ValueError('filter_operatorAnd needs at least 2 arguments')
-    def filter(dataDict):
+    def _and(dataDict):
         for i in args:
             if not i(dataDict):
                 return False
         return True
-    return logger_wrap(filter)
+    return logger_wrap(_and)
 
 def filter_operatorOr(*args):
     if len(args) < 2:
         raise ValueError('filter_operatorOr needs at least 2 arguments')
-    def filter(dataDict):
+    def _or(dataDict):
         for i in args:
             if i(dataDict):
                 return True
         return False
-    return logger_wrap(filter)
+    return logger_wrap(_or)
 
 def filter_getMatchingIndexes(dataDictArray, filterToApply):
     result = []
