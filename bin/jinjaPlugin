@@ -31,6 +31,12 @@ def _yaml_orderedLoad(arg, _all=False, Loader=yaml.Loader, object_pairs_hook=Ord
 def _yaml_orderedDump(data, _all=False, stream=None, Dumper=yaml.Dumper, **kwds):
     class OrderedDumper(Dumper):
         pass
+    def str_presenter(dumper, data):
+        if len(data.splitlines()) > 1:  # check for multiline string
+            return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+    OrderedDumper.add_representer(str, str_presenter)
+
     def _dict_representer(dumper, data):
         return dumper.represent_mapping(
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
@@ -48,10 +54,7 @@ def yaml_load(y, _all=False):
     return _yaml_orderedLoad(y, _all=_all)
 
 def yaml_dump(y, _all=False):
-    return _yaml_orderedDump(y, default_flow_style=False, _all=_all)
-
-def yaml_dumpAll(y):
-    return yaml_dump(y, _all=True)
+    return _yaml_orderedDump(y, _all=_all, default_flow_style=False)
 
 # symmetric-encryption-helper: the basic functionality to decrypt/encrypt configential data
 # see https://nitratine.net/blog/post/encryption-and-decryption-in-python/#what-is-symmetric-encryption
@@ -142,8 +145,8 @@ def filter_fieldExist(path):
 def filter_fieldEqual(path, val):
     def _equal(dataDict):
         logger.debug("closure path={} val={}\n".format(str(path),str(val)))
-        if _dict_getByPath(dataDict, path) == val:
-            result = True
+        if dict_getByPath(dataDict, path) == val:
+            return True
         return False
     return logger_wrap(_equal)
 
@@ -182,7 +185,7 @@ def filter_getMatchingIndexes(dataDictArray, filterToApply):
 def logger_wrap(fn):
     def wrapper(*args, **kwargs):
         logger.debug("{} args=\n\t{}\n\tkwargs={}\n".format(fn.__name__, str(args), str(kwargs)))
-        result = fn(*args, *kwargs)
+        result = fn(*args, **kwargs)
         logger.debug("{} result=\n\t{}\n".format(fn.__name__, str(result)))
         return result
     return wrapper
@@ -191,7 +194,6 @@ def get_functions():
     return {
         'yaml_load': logger_wrap(yaml_load),
         'yaml_dump': logger_wrap(yaml_dump),
-        'yaml_dumpAll': logger_wrap(yaml_dumpAll),
         'crypt_encrypt': logger_wrap(crypt_encrypt),
         'crypt_decrypt': logger_wrap(crypt_decrypt),
         'vault_getClient': logger_wrap(vault_getClient),

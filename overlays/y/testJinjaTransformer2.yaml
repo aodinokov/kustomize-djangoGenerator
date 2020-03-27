@@ -12,4 +12,4 @@ jinjaTemplate: |
                 functions.filter_fieldEqual("metadata/name", "dev-jinja-configmap-test-v1"))) %}
   {% if context.update({'resources': functions.dict_setByPath(context.resources, "{}/data/password".format(i|string), catalog.data.name_base)}) %}{% endif %}
   {% endfor %}
-  {{ functions.yaml_dumpAll(context.resources) }}
+  {{ functions.yaml_dump(context.resources, _all=True) }}

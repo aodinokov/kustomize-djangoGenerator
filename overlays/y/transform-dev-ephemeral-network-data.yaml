@@ -20,4 +20,4 @@ jinjaTemplate: |
                 "{}/stringData/userData".format(i|string), 
                 functions.yaml_dump(corrected_data)|indent(width=2, first=True))}) %}{% endif %}
   {% endfor %}
-  {{ functions.yaml_dumpAll(context.resources) }}
+  {{ functions.yaml_dump(context.resources, _all=True) }}
