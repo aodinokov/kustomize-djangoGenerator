@@ -15,3 +15,4 @@ transformers:
 - testJinjaTransformer.yaml
 - testJinjaTransformer2.yaml
 - transform-dev-ephemeral-network-data.yaml
+- transform-dev-ephemeral-network-data2.yaml

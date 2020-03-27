@@ -115,6 +115,8 @@ def dict_getByPath(dataDict, pathComplex, _all=False):
     pathList = pathComplex.split('|')
     for i in range(len(pathList)):
         res = _dict_getByPath(val, pathList[i])
+        if res is None:
+            return res
         if i == (len(pathList) - 1):
             return res
         val = yaml_load(res, _all=_all)   # _all allows to parse yaml with many yamls as string in the field
@@ -130,7 +132,7 @@ def dict_setByPath(dataDict, pathComplex, value, _all=False):
         else:
             org = reduce(operator.getitem, mapList[:-1], dataDict)[mapList[-1]]
             reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = \
-                    yaml_dump(dict_setByPath(yaml_load(org, _all=_all), pathList[1:].join('|'), value), _all=_all)
+                    yaml_dump(dict_setByPath(yaml_load(org, _all=_all), '|'.join(pathList[1:]), value), _all=_all)
     return res
 
 def dict_update(dataDict1, dataDict2):
@@ -141,13 +143,14 @@ def dict_update(dataDict1, dataDict2):
 def filter_fieldExist(path):
     def _exist(dataDict):
         logger.debug("closure path={}\n".format(str(path)))
-        return not _dict_getByPath(dataDict, path) is None
+        return not dict_getByPath(dataDict, path) is None
     return logger_wrap(_exist)
         
 def filter_fieldEqual(path, val):
     def _equal(dataDict):
         logger.debug("closure path={} val={}\n".format(str(path),str(val)))
-        if dict_getByPath(dataDict, path) == val:
+        path_val = dict_getByPath(dataDict, path)
+        if (not path_val is None) and (path_val == val):
             return True
         return False
     return logger_wrap(_equal)

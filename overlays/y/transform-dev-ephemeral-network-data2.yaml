@@ -1,0 +1,17 @@
+apiVersion: someteam.example.com/v1
+kind: JinjaTransformer
+metadata:
+  name: transform-dev-ephemeral-network-data2
+jinjaCatalog: jinjacatalog.yaml
+jinjaTemplate: |
+  {% set context = {'resources': resources} %}
+  {% for i in functions.filter_getMatchingIndexes(context.resources, 
+        functions.filter_operatorAnd(
+                functions.filter_fieldEqual("kind", "Secret"), 
+                functions.filter_fieldEqual("metadata/name", "dev-node1-bmc-secret-v1"))) %}
+  {% if context.update({'resources': functions.dict_setByPath(
+                context.resources, 
+                "{}/stringData/userData|ssh_authorized_keys/0".format(i|string), 
+                "ssh-rsa {} updated".format(catalog.data.name_base))}) %}{% endif %}
+  {% endfor %}
+  {{ functions.yaml_dump(context.resources, _all=True) }}
