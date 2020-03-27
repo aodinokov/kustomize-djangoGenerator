@@ -29,7 +29,6 @@ def yaml_orderedLoad(arg, _all=False, Loader=yaml.Loader, object_pairs_hook=Orde
     return yaml.load(arg, OrderedLoader)
 
 def yaml_orderedDump(data, _all=False, stream=None, Dumper=yaml.Dumper, **kwds):
-    # logger.debug("yaml_orderedDump _all={}\n".format(str(_all)))
     class OrderedDumper(Dumper):
         pass
     def _dict_representer(dumper, data):
@@ -47,7 +46,7 @@ def yaml_orderedDump(data, _all=False, stream=None, Dumper=yaml.Dumper, **kwds):
 
 # symmetric-encryption-helper: the basic functionality to decrypt/encrypt configential data
 # see https://nitratine.net/blog/post/encryption-and-decryption-in-python/#what-is-symmetric-encryption
-def crypt_getKeyFromPassword(password_provided):
+def _crypt_getKeyFromPassword(password_provided):
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -63,30 +62,27 @@ def crypt_getKeyFromPassword(password_provided):
     )
     return base64.urlsafe_b64encode(kdf.derive(password))
 
-def crypt_getKey():
-    return crypt_getKeyFromPassword(os.environ['JINJA_CRYPT_PASSWORD'])
+def _crypt_getKey():
+    return _crypt_getKeyFromPassword(os.environ['JINJA_CRYPT_PASSWORD'])
 
 # functions for globals TODO: move thems to separate modules
 def yaml_load(y):
-    logger.debug("yaml_load y={}\n".format(str(y)))
     return yaml_orderedLoad(y)
 
 def yaml_dump(y):
-    logger.debug("yaml_dump y={}\n".format(str(y)))
     return yaml_orderedDump(y, default_flow_style=False)
 
 def yaml_dumpAll(y):
-    logger.debug("yaml_dumpAll y={}\n".format(str(y)))
     return yaml_orderedDump(y, _all=True, default_flow_style=False)
 
 def crypt_encrypt(s):
     from cryptography.fernet import Fernet
-    f = Fernet(crypt_getKey())
+    f = Fernet(_crypt_getKey())
     return base64.b64encode(f.encrypt(s.encode())).decode()
 
 def crypt_decrypt(e):
     from cryptography.fernet import Fernet
-    f = Fernet(crypt_getKey())
+    f = Fernet(_crypt_getKey())
     return f.decrypt(base64.b64decode(e.encode())).decode()
 
 # vault-helper:
@@ -111,7 +107,6 @@ def _dict_getByPath(dataDict, path):
     return None
 
 def dict_getByPath(dataDict, pathComplex, _all=False):
-    logger.debug("dict_getByPath dataDict={} path={}\n".format(str(dataDict), str(pathComplex)))
     val = dataDict
     pathList = pathComplex.split('|')
     for i in range(len(pathList)):
@@ -121,7 +116,6 @@ def dict_getByPath(dataDict, pathComplex, _all=False):
         val = yaml_orderedLoad(res, _all=_all)   # _all allows to parse yaml with many yamls as string in the field
 
 def dict_setByPath(dataDict, pathComplex, value, _all=False):
-    logger.debug("dict_setByPath dataDict={} path={} value={}\n".format(str(dataDict), str(pathComplex), str(value)))
     res = value
     pathList = pathComplex.split('|')
     if (len(pathList) > 0):
@@ -136,86 +130,79 @@ def dict_setByPath(dataDict, pathComplex, value, _all=False):
     return res
 
 def dict_update(dataDict1, dataDict2):
-    logger.debug("dict_update dataDict1={} dataDict2={}\n".format(str(dataDict1), str(dataDict2)))
     dataDict1_copy = copy.deepcopy(dataDict1)
     dataDict1_copy.update(dataDict2)
     return dataDict1_copy
 
 def filter_fieldExist(path):
-    logger.debug("filter_fieldExist path={}\n".format(str(path)))
     def filter(dataDict):
-        logger.debug("fieldExist path={} dataDict={}\n".format(str(path), str(dataDict)))
-        result = not _dict_getByPath(dataDict, path) is None
-        logger.debug("fieldExist result={}\n".format(str(result)))
-        return result
-    return filter
+        return not _dict_getByPath(dataDict, path) is None
+    return logger_wrap(filter)
         
 def filter_fieldEqual(path, val):
-    logger.debug("filter_fieldEqual path={} val={}\n".format(str(path), str(val)))
     def filter(dataDict):
-        logger.debug("fieldEqual path={} dataDict={} val={}\n".format(str(path), str(dataDict), str(val)))
-        # TODO: compare only leafs
-        result = False
         if _dict_getByPath(dataDict, path) == val:
             result = True
-        logger.debug("fieldEqual result={}\n".format(str(result)))
-        return result
-    return filter
+        return False
+    return logger_wrap(filter)
 
 def filter_operatorNot(filterToInvert):
     def filter(dataDict):
         return not filterToInvert(dataDict)
-    return filter
+    return logger_wrap(filter)
 
 def filter_operatorAnd(*args):
     if len(args) < 2:
         raise ValueError('filter_operatorAnd needs at least 2 arguments')
-
     def filter(dataDict):
         for i in args:
             if not i(dataDict):
                 return False
         return True
-    return filter
+    return logger_wrap(filter)
 
 def filter_operatorOr(*args):
     if len(args) < 2:
         raise ValueError('filter_operatorOr needs at least 2 arguments')
-
     def filter(dataDict):
         for i in args:
             if i(dataDict):
                 return True
         return False
-    return filter
+    return logger_wrap(filter)
 
 def filter_getMatchingIndexes(dataDictArray, filterToApply):
     result = []
     for i in range(len(dataDictArray)):
         if filterToApply(dataDictArray[i]):
             result.append(i)
-
-    logger.debug("filter_getMatchingIndexes result={}\n".format(str(result)))
-
     return result
+
+def logger_wrap(fn):
+    def wrapper(*args, **kwargs):
+        logger.debug("{} args=\n\t{}\n\tkwargs={}\n".format(fn.__name__, str(args), str(kwargs)))
+        result = fn(*args, *kwargs)
+        logger.debug("{} result=\n\t{}\n".format(fn.__name__, str(result)))
+        return result
+    return wrapper
 
 def get_functions():
     return {
-        'yaml_load': yaml_load,
-        'yaml_dump': yaml_dump,
-        'yaml_dumpAll': yaml_dumpAll,
-        'crypt_encrypt': crypt_encrypt,
-        'crypt_decrypt': crypt_decrypt,
-        'vault_getClient': vault_getClient,
-        'dict_getByPath': dict_getByPath,
-        'dict_setByPath': dict_setByPath, 
-        'dict_update': dict_update, 
-        'filter_fieldExist': filter_fieldExist,
-        'filter_fieldEqual': filter_fieldEqual,
-        'filter_operatorNot': filter_operatorNot,
-        'filter_operatorAnd': filter_operatorAnd,
-        'filter_operatorOr': filter_operatorOr,
-        'filter_getMatchingIndexes': filter_getMatchingIndexes, }
+        'yaml_load': logger_wrap(yaml_load),
+        'yaml_dump': logger_wrap(yaml_dump),
+        'yaml_dumpAll': logger_wrap(yaml_dumpAll),
+        'crypt_encrypt': logger_wrap(crypt_encrypt),
+        'crypt_decrypt': logger_wrap(crypt_decrypt),
+        'vault_getClient': logger_wrap(vault_getClient),
+        'dict_getByPath': logger_wrap(dict_getByPath),
+        'dict_setByPath': logger_wrap(dict_setByPath), 
+        'dict_update': logger_wrap(dict_update), 
+        'filter_fieldExist': logger_wrap(filter_fieldExist),
+        'filter_fieldEqual': logger_wrap(filter_fieldEqual),
+        'filter_operatorNot': logger_wrap(filter_operatorNot),
+        'filter_operatorAnd': logger_wrap(filter_operatorAnd),
+        'filter_operatorOr': logger_wrap(filter_operatorOr),
+        'filter_getMatchingIndexes': logger_wrap(filter_getMatchingIndexes), }
 #-------------------------------------------------------------------
 def get_input():
     input = []
