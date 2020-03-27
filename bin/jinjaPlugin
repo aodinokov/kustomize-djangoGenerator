@@ -15,7 +15,7 @@ import operator
 # see
 # https://github.com/yaml/pyyaml/issues/110 and
 # https://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts
-def yaml_orderedLoad(arg, _all=False, Loader=yaml.Loader, object_pairs_hook=OrderedDict):
+def _yaml_orderedLoad(arg, _all=False, Loader=yaml.Loader, object_pairs_hook=OrderedDict):
     class OrderedLoader(Loader):
         pass
     def construct_mapping(loader, node):
@@ -28,7 +28,7 @@ def yaml_orderedLoad(arg, _all=False, Loader=yaml.Loader, object_pairs_hook=Orde
         return yaml.load_all(arg, OrderedLoader)
     return yaml.load(arg, OrderedLoader)
 
-def yaml_orderedDump(data, _all=False, stream=None, Dumper=yaml.Dumper, **kwds):
+def _yaml_orderedDump(data, _all=False, stream=None, Dumper=yaml.Dumper, **kwds):
     class OrderedDumper(Dumper):
         pass
     def _dict_representer(dumper, data):
@@ -43,6 +43,15 @@ def yaml_orderedDump(data, _all=False, stream=None, Dumper=yaml.Dumper, **kwds):
             result+='---\n'
         return result
     return yaml.dump(data, stream, OrderedDumper, **kwds)
+
+def yaml_load(y, _all=False):
+    return _yaml_orderedLoad(y, _all=_all)
+
+def yaml_dump(y, _all=False):
+    return _yaml_orderedDump(y, default_flow_style=False, _all=_all)
+
+def yaml_dumpAll(y):
+    return yaml_dump(y, _all=True)
 
 # symmetric-encryption-helper: the basic functionality to decrypt/encrypt configential data
 # see https://nitratine.net/blog/post/encryption-and-decryption-in-python/#what-is-symmetric-encryption
@@ -64,16 +73,6 @@ def _crypt_getKeyFromPassword(password_provided):
 
 def _crypt_getKey():
     return _crypt_getKeyFromPassword(os.environ['JINJA_CRYPT_PASSWORD'])
-
-# functions for globals TODO: move thems to separate modules
-def yaml_load(y):
-    return yaml_orderedLoad(y)
-
-def yaml_dump(y):
-    return yaml_orderedDump(y, default_flow_style=False)
-
-def yaml_dumpAll(y):
-    return yaml_orderedDump(y, _all=True, default_flow_style=False)
 
 def crypt_encrypt(s):
     from cryptography.fernet import Fernet
@@ -113,7 +112,7 @@ def dict_getByPath(dataDict, pathComplex, _all=False):
         res = _dict_getByPath(val, pathList[i])
         if i == (len(pathList) - 1):
             return res
-        val = yaml_orderedLoad(res, _all=_all)   # _all allows to parse yaml with many yamls as string in the field
+        val = yaml_load(res, _all=_all)   # _all allows to parse yaml with many yamls as string in the field
 
 def dict_setByPath(dataDict, pathComplex, value, _all=False):
     res = value
@@ -126,7 +125,7 @@ def dict_setByPath(dataDict, pathComplex, value, _all=False):
         else:
             org = reduce(operator.getitem, mapList[:-1], dataDict)[mapList[-1]]
             reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = \
-                    yaml_orderedDump(dict_setByPath(yaml_orderedLoad(org, _all=_all), pathList[1:].join('|'), value), default_flow_style=False, _all=_all)
+                    yaml_dump(dict_setByPath(yaml_load(org, _all=_all), pathList[1:].join('|'), value), _all=_all)
     return res
 
 def dict_update(dataDict1, dataDict2):
@@ -208,7 +207,7 @@ def get_functions():
 #-------------------------------------------------------------------
 def get_input():
     input = []
-    for i in yaml_orderedLoad(sys.stdin, _all=True):
+    for i in yaml_load(sys.stdin, _all=True):
         input.append(i)
     return input
 
@@ -241,7 +240,7 @@ def render_JinjaCatalog(global_obj):
             if parent_jinjaCatalog is None:
                 parent_jinjaCatalog = 'jinjacatalog.yaml'
 
-            parent_obj = yaml_orderedLoad(get_renderred_JinjaCatalog(os.path.realpath(os.path.join(global_obj['config_root'], parent_root)), parent_jinjaCatalog))
+            parent_obj = yaml_load(get_renderred_JinjaCatalog(os.path.realpath(os.path.join(global_obj['config_root'], parent_root)), parent_jinjaCatalog))
             if parent_obj is None:
                 sys.exit("couldn't read yaml - for parent {} exiting".format(str(parent)))
 
@@ -264,7 +263,7 @@ def get_renderred_JinjaCatalog(config_root, config_jinjaCatalog):
         'config_root': config_root}
 
     with open(os.path.join(config_root, config_jinjaCatalog)) as f:
-        global_obj["config"] = yaml_orderedLoad(f)
+        global_obj["config"] = yaml_load(f)
     if  global_obj["config"] is None:
         sys.exit("wasn't able to read {}".format(str(config_jinjaCatalog)))
 
@@ -279,7 +278,7 @@ def render_JinjaGenerator(global_obj):
     if config_jinjaTemplate is None:
         sys.exit("mandatory field jinjaTemplate is missed")
 
-    jinjaCatalog_yaml = yaml_orderedLoad(get_renderred_JinjaCatalog(global_obj['config_root'], config_jinjaCatalog))
+    jinjaCatalog_yaml = yaml_load(get_renderred_JinjaCatalog(global_obj['config_root'], config_jinjaCatalog))
     if jinjaCatalog_yaml is None:
         sys.exit("couldn't ready yaml")
 
@@ -313,7 +312,7 @@ def process_config(config_root, config_string):
         'functions': get_functions(), 
         'config_root': config_root}
 
-    global_obj["config"] = yaml_orderedLoad(config_string)
+    global_obj["config"] = yaml_load(config_string)
     if global_obj["config"] is None:
         sys.exit("wasn't able to read config")
     logger.debug("config:\n{}\n".format(str(global_obj["config"])))
