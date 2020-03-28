@@ -1,4 +1,5 @@
 # kustomize-jinjaPlugin
+[![Build Status](https://travis-ci.com/aodinokov/kustomize-jinjaPlugin.svg?branch=master)](https://travis-ci.com/github/aodinokov/kustomize-jinjaPlugin)
 
 PoC Kustomize generator and transformer (all-in-one) plugin to show the power of Jinja
 
