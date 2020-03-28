@@ -13,4 +13,8 @@ JinjaCatalog document may have the following fields: "parents", "jinjaTemplate" 
 [Here](https://travis-ci.com/github/aodinokov/kustomize-jinjaPlugin/jobs/306891246#L243)
 it's possible to find the final values that appeared in the catalog.
 
+Note: you will probably want to keep Catalogs in kustomize and don't feed it to kubectl. Please consider annotation
 
+**`config.kubernetes.io/local-config: "true"`**
+
+for that cases. For more info please refer [this](https://github.com/kubernetes-sigs/kustomize/blob/master/cmd/config/docs/api-conventions/config-io.md) document.
