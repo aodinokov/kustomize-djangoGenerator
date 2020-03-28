@@ -5,4 +5,4 @@ python:
 install:
 - (cd bin && pwd && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash)
 script:
-- JINJA_CRYPT_PASSWORD="multipass" JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) ./bin/kustomize build --enable_alpha_plugins overlays/y
+- PATH="$PATH:$(pwd)/bin" ./demo

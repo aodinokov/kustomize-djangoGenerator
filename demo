@@ -1,0 +1,10 @@
+#!/bin/bash
+#env
+echo "**************************Generator demo output**************************"
+JINJA_CRYPT_PASSWORD="multipass" JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins overlays/crypt
+
+echo "**************************Catalog demo output****************************"
+JINJA_CRYPT_PASSWORD="multipass" JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins overlays/catalogs
+
+#echo "Transformer demo 1 output:"
+

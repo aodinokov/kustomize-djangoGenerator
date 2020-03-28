@@ -228,7 +228,7 @@ def render_JinjaCatalog(global_obj):
 
     if apiVersion is None or kind is None or kind != "JinjaCatalog":
         logger.debug("returning non JinjaCatalog yaml:\n{}\n".format(str(global_obj["config"])))
-        return global_obj["config"]
+        return yaml_dump(global_obj["config"])
 
     if jinjaTemplate is None:
         sys.exit("wasn't able to find jinjaTemplate - exiting")
@@ -242,7 +242,7 @@ def render_JinjaCatalog(global_obj):
             parent_root = parent.get('root')
             parent_jinjaCatalog = parent.get('jinjaCatalog')
             if parent_root is None:
-                sys.exit("parent must contain root - exiting")
+                parent_root = global_obj['config_root']
 
             if parent_jinjaCatalog is None:
                 parent_jinjaCatalog = 'jinjacatalog.yaml'

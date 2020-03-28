@@ -21,7 +21,7 @@ jinjaTemplate: |
   metadata:
     name: jinja-configmap-test2
     annotations:
-      kustomize.config.k8s.io/needs-hash: "true"
+      kustomize.config.k8s.io/needs-hash: "false"
   data:
     username: alice
 

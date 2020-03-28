@@ -1,0 +1,7 @@
+apiVersion: someteam.example.com/v1
+kind: JinjaGenerator
+metadata:
+  name: catalog-demo
+jinjaCatalog: jinjacatalog.yaml
+jinjaTemplate: |
+  {{ functions.yaml_dump(catalog) }}
