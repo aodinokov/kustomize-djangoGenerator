@@ -7,3 +7,4 @@ Note: base dir contains encrypted data. to run the example please use the follow
 
     JINJA_CRYPT_PASSWORD="multipass" JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins overlays/y
 
+Alternatevly just go and check the output of Travis CI build - it runs ./demo
