@@ -1,0 +1,9 @@
+resources:
+- ../../base
+- cm1.yaml
+- cm2.yaml
+namePrefix: dev-
+nameSuffix: -v1
+transformers:
+- testJinjaTransformer1.yaml
+- testJinjaTransformer2.yaml

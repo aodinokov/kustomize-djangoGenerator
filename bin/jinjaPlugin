@@ -226,12 +226,9 @@ def render_JinjaCatalog(global_obj):
     parents = global_obj["config"].get("parents")
     jinjaTemplate = global_obj["config"].get("jinjaTemplate")
 
-    if apiVersion is None or kind is None or kind != "JinjaCatalog":
+    if apiVersion is None or kind is None or kind != "JinjaCatalog" or jinjaTemplate is None:
         logger.debug("returning non JinjaCatalog yaml:\n{}\n".format(str(global_obj["config"])))
         return yaml_dump(global_obj["config"])
-
-    if jinjaTemplate is None:
-        sys.exit("wasn't able to find jinjaTemplate - exiting")
 
     if not data is None:
         global_obj["data"] = data

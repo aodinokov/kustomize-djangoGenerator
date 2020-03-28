@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  password: alixe_base
+  username: alice
+kind: ConfigMap
+metadata:
+        name: jinja-configmap-test

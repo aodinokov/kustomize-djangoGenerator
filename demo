@@ -6,5 +6,8 @@ JINJA_CRYPT_PASSWORD="multipass" JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize 
 echo "**************************Catalog demo output****************************"
 JINJA_CRYPT_PASSWORD="multipass" JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins overlays/catalogs
 
-#echo "Transformer demo 1 output:"
+echo "**************************Transformer demo 1 output**********************"
+JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins overlays/transformer1
 
+echo "**************************Transformer demo 2 output**********************"
+JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins overlays/transformer2
