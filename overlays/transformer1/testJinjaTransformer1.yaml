@@ -13,6 +13,6 @@ jinjaTemplate: |
                 functions.filter_operatorOr(
                         functions.filter_fieldEqual("metadata/name", "dev-jinja-configmap-test-v1"), 
                         functions.filter_fieldEqual("metadata/name", "dev-jinja-configmap-test2-v1")))) %}
-  {% if context.update({'resources': functions.dict_setByPath(context.resources, "{}/data/username".format(i|string), catalog.data.name_base)}) %}{% endif %}
+  {% if context.update({'resources': functions.dict_modifyByPath(context.resources, "{}/data/username".format(i|string), functions.operation_set(catalog.data.name_base))}) %}{% endif %}
   {% endfor %}
   {{ functions.yaml_dump(context.resources, _all=True) }}

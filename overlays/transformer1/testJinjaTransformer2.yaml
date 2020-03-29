@@ -10,6 +10,6 @@ jinjaTemplate: |
                 functions.filter_fieldEqual("kind", "ConfigMap"), 
                 functions.filter_fieldExist("metadata/name"), 
                 functions.filter_fieldEqual("metadata/name", "dev-jinja-configmap-test-v1"))) %}
-  {% if context.update({'resources': functions.dict_setByPath(context.resources, "{}/data/password".format(i|string), catalog.data.name_base)}) %}{% endif %}
+  {% if context.update({'resources': functions.dict_modifyByPath(context.resources, "{}/data/password".format(i|string), functions.operation_set(catalog.data.name_base))}) %}{% endif %}
   {% endfor %}
   {{ functions.yaml_dump(context.resources, _all=True) }}

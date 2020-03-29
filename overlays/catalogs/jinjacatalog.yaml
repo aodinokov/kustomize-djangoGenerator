@@ -10,11 +10,23 @@ data:
   name: x
   age: 25
   user: alixe
+  arbitrary:
+    a: 10
 jinjaTemplate: |
   apiVersion: {{ config.apiVersion }}
   kind: JinjaCatalog
   metadata:
     name: {{ config.metadata.name }}
   data:
-    {{ functions.yaml_dump(functions.dict_update(config.parents[0].obj.data, functions.dict_update(data, config.parents[1].obj)))|indent(width=2, first=False) }}
+    {{ functions.yaml_dump(
+        functions.dict_modifyByPath(
+                functions.dict_modifyByPath(
+                        data, 
+                        "", 
+                        functions.operation_merge(config.parents[0].obj.data)
+                ),
+                "arbitrary",
+                functions.operation_merge(config.parents[1].obj)
+        )
+       )|indent(width=2, first=False) }}
 

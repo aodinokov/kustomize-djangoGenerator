@@ -121,27 +121,6 @@ def dict_getByPath(dataDict, pathComplex, _all=False):
             return res
         val = yaml_load(res, _all=_all)   # _all allows to parse yaml with many yamls as string in the field
 
-# deprecated
-def dict_setByPath(dataDict, pathComplex, value, _all=False):
-    res = value
-    pathList = pathComplex.split('|')
-    if (len(pathList) > 0):
-        mapList = [int(i) if i.isdigit() else i for i in pathList[0].split('/')]
-        res = copy.deepcopy(dataDict)
-        if len(pathList) == 1:
-            reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = value
-        else:
-            org = reduce(operator.getitem, mapList[:-1], dataDict)[mapList[-1]]
-            reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = \
-                    yaml_dump(dict_setByPath(yaml_load(org, _all=_all), '|'.join(pathList[1:]), value), _all=_all)
-    return res
-
-#deprecated
-def dict_update(dataDict1, dataDict2):
-    dataDict1_copy = copy.deepcopy(dataDict1)
-    dataDict1_copy.update(dataDict2)
-    return dataDict1_copy
-
 def operation_set(value):
     def _set(obj, index):
         obj[index] = value
@@ -154,7 +133,10 @@ def operation_del():
 
 def operation_merge(value):
     def _merge(obj, index):
-        obj[index].update(value)
+        if index == '':
+            obj.update(value)
+        else:
+            obj[index].update(value)
     return logger_wrap(_merge)
 
 def dict_modifyByPath(dataDict, pathComplex, operation, _all=False):
@@ -256,14 +238,10 @@ def get_functions():
         'crypt_decrypt': logger_wrap(crypt_decrypt),
         'vault_getClient': logger_wrap(vault_getClient),
         'dict_getByPath': logger_wrap(dict_getByPath),
-        'dict_setByPath': logger_wrap(dict_setByPath), 
-        'dict_update': logger_wrap(dict_update),
-
         'operation_set': logger_wrap(operation_set),
         'operation_del': logger_wrap(operation_del),
         'operation_merge': logger_wrap(operation_merge),
         'dict_modifyByPath': logger_wrap(dict_modifyByPath),
-
         'filter_fieldExist': logger_wrap(filter_fieldExist),
         'filter_fieldEqual': logger_wrap(filter_fieldEqual),
         'filter_operatorNot': logger_wrap(filter_operatorNot),
