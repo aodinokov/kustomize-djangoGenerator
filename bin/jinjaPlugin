@@ -121,6 +121,7 @@ def dict_getByPath(dataDict, pathComplex, _all=False):
             return res
         val = yaml_load(res, _all=_all)   # _all allows to parse yaml with many yamls as string in the field
 
+# deprecated
 def dict_setByPath(dataDict, pathComplex, value, _all=False):
     res = value
     pathList = pathComplex.split('|')
@@ -135,10 +136,46 @@ def dict_setByPath(dataDict, pathComplex, value, _all=False):
                     yaml_dump(dict_setByPath(yaml_load(org, _all=_all), '|'.join(pathList[1:]), value), _all=_all)
     return res
 
+#deprecated
 def dict_update(dataDict1, dataDict2):
     dataDict1_copy = copy.deepcopy(dataDict1)
     dataDict1_copy.update(dataDict2)
     return dataDict1_copy
+
+def operation_set(value):
+    def _set(obj, index):
+        obj[index] = value
+    return logger_wrap(_set)
+
+def operation_del():
+    def _delete(obj, index):
+        del obj[index]
+    return logger_wrap(_delete)
+
+def operation_merge(value):
+    def _merge(obj, index):
+        obj[index].update(value)
+    return logger_wrap(_merge)
+
+def dict_modifyByPath(dataDict, pathComplex, operation, _all=False):
+    res = value
+    pathList = pathComplex.split('|')
+    if (len(pathList) > 0):
+        mapList = [int(i) if i.isdigit() else i for i in pathList[0].split('/')]
+        res = copy.deepcopy(dataDict)
+        if len(pathList) == 1:
+            operation(reduce(operator.getitem, mapList[:-1], res), mapList[-1])
+        else:
+            org = reduce(operator.getitem, mapList[:-1], dataDict)[mapList[-1]]
+            reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = \
+                    yaml_dump(dict_setByPath(yaml_load(org, _all=_all), '|'.join(pathList[1:]), value), _all=_all)
+    return res
+
+def filter_(value):
+    def _value(dataDict):
+        logger.debug("closure value={}\n".format(str(value)))
+        return value
+    return logger_wrap(_value)
 
 def filter_fieldExist(path):
     def _exist(dataDict):
@@ -187,6 +224,21 @@ def filter_getMatchingIndexes(dataDictArray, filterToApply):
             result.append(i)
     return result
 
+def filter_modifyMatching(dataDictArray, filterToApply, modify):
+    resultArray = []
+    for i in  range(len(dataDictArray)):
+        if filterToApply(dataDictArray[i]):
+            resultArray.append(modify(dataDictArray[i]))
+        else:
+            resultArray.append(dataDictArray[i])
+    return resultArray
+
+def modify_byPath(pathComplex, operation, _all=False):
+    def _byPath(obj):
+        logger.debug("closure pathComplex={} operation={} _all={}\n".format(str(pathComplex),str(operation),str(_all)))
+        return dict_modifyByPath(obj, pathComplex, operation, _all=_all)
+    return logger_wrap(_byPath)
+
 def logger_wrap(fn):
     def wrapper(*args, **kwargs):
         logger.debug("{} args=\n\t{}\n\tkwargs={}\n".format(fn.__name__, str(args), str(kwargs)))
@@ -204,13 +256,21 @@ def get_functions():
         'vault_getClient': logger_wrap(vault_getClient),
         'dict_getByPath': logger_wrap(dict_getByPath),
         'dict_setByPath': logger_wrap(dict_setByPath), 
-        'dict_update': logger_wrap(dict_update), 
+        'dict_update': logger_wrap(dict_update),
+
+        'operation_set': logger_wrap(operation_set),
+        'operation_del': logger_wrap(operation_del),
+        'operation_merge': logger_wrap(operation_merge),
+        'dict_modifyByPath': logger_wrap(dict_modifyByPath),
+
         'filter_fieldExist': logger_wrap(filter_fieldExist),
         'filter_fieldEqual': logger_wrap(filter_fieldEqual),
         'filter_operatorNot': logger_wrap(filter_operatorNot),
         'filter_operatorAnd': logger_wrap(filter_operatorAnd),
         'filter_operatorOr': logger_wrap(filter_operatorOr),
-        'filter_getMatchingIndexes': logger_wrap(filter_getMatchingIndexes), }
+        'filter_getMatchingIndexes': logger_wrap(filter_getMatchingIndexes),
+        'filter_modifyMatching': logger_wrap(filter_modifyMatching),
+        'modify_byPath': logger_wrap(modify_byPath), }
 #-------------------------------------------------------------------
 def get_input():
     input = []
