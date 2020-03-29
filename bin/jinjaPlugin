@@ -158,7 +158,7 @@ def operation_merge(value):
     return logger_wrap(_merge)
 
 def dict_modifyByPath(dataDict, pathComplex, operation, _all=False):
-    res = value
+    res = dataDict
     pathList = pathComplex.split('|')
     if (len(pathList) > 0):
         mapList = [int(i) if i.isdigit() else i for i in pathList[0].split('/')]
@@ -168,7 +168,7 @@ def dict_modifyByPath(dataDict, pathComplex, operation, _all=False):
         else:
             org = reduce(operator.getitem, mapList[:-1], dataDict)[mapList[-1]]
             reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = \
-                    yaml_dump(dict_setByPath(yaml_load(org, _all=_all), '|'.join(pathList[1:]), value), _all=_all)
+                    yaml_dump(dict_setByPath(yaml_load(org, _all=_all), '|'.join(pathList[1:]), operation, _all=_all), _all=_all)
     return res
 
 def filter_(value):

@@ -11,3 +11,6 @@ JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins over
 
 echo "**************************Transformer demo 2 output**********************"
 JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins overlays/transformer2
+
+echo "**************************Transformer demo 2 output**********************"
+JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins overlays/transformer3

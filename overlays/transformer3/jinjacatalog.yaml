@@ -1,0 +1,7 @@
+apiVersion: someteam.example.com/v1
+kind: JinjaCatalog
+metadata:
+  name: overlay-transformers
+data:
+  name: alice
+  name_base: alice_base
