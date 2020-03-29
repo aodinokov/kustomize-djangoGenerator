@@ -1,11 +1,11 @@
 apiVersion: someteam.example.com/v1
-kind: JinjaCatalog
+kind: JinjaGenerator
 metadata:
   name: overlay-y
-parents:
+sources:
 - root: ../crypt
-  jinjaCatalog: jinjacatalog.yaml       # jinjacatalog.yaml is default value if omit this param
-- jinjaCatalog: arbitrary.yaml          # root isn't changes if it's not set 
+  path: jinjacatalog.yaml       # jinjacatalog.yaml is default value if omit this param
+- path: arbitrary.yaml          # root isn't changes if it's not set
 data:
   name: x
   age: 25
@@ -18,15 +18,15 @@ jinjaTemplate: |
   metadata:
     name: {{ config.metadata.name }}
   data:
-    {{ functions.yaml_dump(
-        functions.dict_modifyByPath(
-                functions.dict_modifyByPath(
-                        data, 
+    {{ fn.yaml_dump(
+        fn.dict_modifyByPath(
+                fn.dict_modifyByPath(
+                        config.data,
                         "", 
-                        functions.operation_merge(config.parents[0].obj.data)
+                        fn.operation_merge(config.sources[0].object.data)
                 ),
                 "arbitrary",
-                functions.operation_merge(config.parents[1].obj)
+                fn.operation_merge(config.sources[1].object)
         )
        )|indent(width=2, first=False) }}
 

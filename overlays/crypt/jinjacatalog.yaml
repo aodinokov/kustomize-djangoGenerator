@@ -1,5 +1,5 @@
 apiVersion: someteam.example.com/v1
-kind: JinjaCatalog
+kind: JinjaGenerator
 metadata:
   name: overlay-crypt
 data:
@@ -14,6 +14,6 @@ jinjaTemplate: |
   metadata:
     name: {{ config.metadata.name }}
   data:
-    user_encrypted_new: {{ functions.crypt_encrypt(data.user) }}
-    user_decrypted: {{ functions.crypt_decrypt(data.user_encrypted) }}
-    {{ functions.yaml_dump(data)|indent(width=2, first=False) }}
+    user_encrypted_new: {{ fn.crypt_encrypt(config.data.user) }}
+    user_decrypted: {{ fn.crypt_decrypt(config.data.user_encrypted) }}
+    {{ fn.yaml_dump(config.data)|indent(width=2, first=False) }}

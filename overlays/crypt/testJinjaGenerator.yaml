@@ -2,9 +2,10 @@ apiVersion: someteam.example.com/v1
 kind: JinjaGenerator
 metadata:
   name: whatever
-jinjaCatalog: jinjacatalog.yaml
+sources:
+- path: jinjacatalog.yaml
 jinjaTemplate: |
-  {{ functions.yaml_dump(catalog) }}
+  {{ fn.yaml_dump(config.sources[0].object) }}
   ---
   kind: ConfigMap
   apiVersion: v1
@@ -14,7 +15,7 @@ jinjaTemplate: |
       kustomize.config.k8s.io/needs-hash: "true"
   data:
     username: alice
-    password: "{{ catalog.data.user }}"
+    password: "{{ config.sources[0].object.data.user }}"
   ---
   kind: ConfigMap
   apiVersion: v1

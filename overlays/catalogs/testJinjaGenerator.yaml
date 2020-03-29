@@ -2,6 +2,7 @@ apiVersion: someteam.example.com/v1
 kind: JinjaGenerator
 metadata:
   name: catalog-demo
-jinjaCatalog: jinjacatalog.yaml
+sources:
+- path: jinjacatalog.yaml
 jinjaTemplate: |
-  {{ functions.yaml_dump(catalog) }}
+  {{ fn.yaml_dump(config.sources[0].object) }}
