@@ -292,6 +292,10 @@ def render_JinjaCatalog(global_obj):
     logger.debug("rendering with global_obj={}\n".format(str(global_obj)))
 
     env = Environment()
+
+    env.filters['yaml_dump'] = logger_wrap(yaml_dump)
+    env.filters['filter_modifyMatching'] = logger_wrap(filter_modifyMatching)
+
     template = env.from_string(jinjaTemplate)
     rendered = template.render(global_obj)
 
@@ -335,6 +339,10 @@ def render_JinjaGenerator(global_obj):
     logger.debug("rendering with global_obj={}\n".format(str(global_obj)))
 
     env = Environment()
+
+    env.filters['yaml_dump'] = logger_wrap(yaml_dump)
+    env.filters['filter_modifyMatching'] = logger_wrap(filter_modifyMatching)
+
     template = env.from_string(config_jinjaTemplate)
     rendered =  template.render(global_obj)
 
