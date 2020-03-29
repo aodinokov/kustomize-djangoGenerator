@@ -164,11 +164,12 @@ def dict_modifyByPath(dataDict, pathComplex, operation, _all=False):
         mapList = [int(i) if i.isdigit() else i for i in pathList[0].split('/')]
         res = copy.deepcopy(dataDict)
         if len(pathList) == 1:
+            logger.debug("mapList={} res={}\n".format(str(mapList), str(res)))
             operation(reduce(operator.getitem, mapList[:-1], res), mapList[-1])
         else:
             org = reduce(operator.getitem, mapList[:-1], dataDict)[mapList[-1]]
             reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = \
-                    yaml_dump(dict_setByPath(yaml_load(org, _all=_all), '|'.join(pathList[1:]), operation, _all=_all), _all=_all)
+                    yaml_dump(dict_modifyByPath(yaml_load(org, _all=_all), '|'.join(pathList[1:]), operation, _all=_all), _all=_all)
     return res
 
 def filter_(value):

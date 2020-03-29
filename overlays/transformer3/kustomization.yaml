@@ -1,8 +1,6 @@
 resources:
-- ../../base
-- secret.yaml
+- short_secret.yaml
 namePrefix: dev-
 nameSuffix: -v1
 transformers:
-- transform-dev-node1-bmc-secret-v1-1.yaml
 - transform-dev-node1-bmc-secret-v1-2.yaml
