@@ -210,11 +210,14 @@ def filter_getMatchingIndexes(dataDictArray, filterToApply):
             result.append(i)
     return result
 
-def filter_modifyMatching(dataDictArray, filterToApply, modify):
+def filter_modifyMatching(dataDictArray, filterToApply, *modify):
     resultArray = []
     for i in  range(len(dataDictArray)):
         if filterToApply(dataDictArray[i]):
-            resultArray.append(modify(dataDictArray[i]))
+            res = dataDictArray[i]
+            for i in modify:
+                res = i(res)
+            resultArray.append(res)
         else:
             resultArray.append(dataDictArray[i])
     return resultArray
