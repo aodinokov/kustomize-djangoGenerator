@@ -3,4 +3,4 @@ resources:
 generators:
   - generators/secret.yaml
 transformers:
-  - ../../../function/ephemeral/transformers/secret.yaml
+  - ../../../function/ephemeral/transformers/

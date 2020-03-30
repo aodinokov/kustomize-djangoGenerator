@@ -123,6 +123,7 @@ def dict_getByPath(dataDict, pathComplex, _all=False):
 
 def operation_set(value):
     def _set(obj, index):
+        logger.debug("_set obj={} index={} value={}\n".format(str(obj), str(index), str(value)))
         obj[index] = value
     return logger_wrap(_set)
 
@@ -146,8 +147,10 @@ def dict_modifyByPath(dataDict, pathComplex, operation, _all=False):
         mapList = [int(i) if i.isdigit() else i for i in pathList[0].split('/')]
         res = copy.deepcopy(dataDict)
         if len(pathList) == 1:
-            logger.debug("mapList={} res={}\n".format(str(mapList), str(res)))
-            operation(reduce(operator.getitem, mapList[:-1], res), mapList[-1])
+            logger.debug("operation={} mapList={} res={}\n".format(str(operation), str(mapList), str(res)))
+            reduced = reduce(operator.getitem, mapList[:-1], res)
+            logger.debug("reduced={}\n".format(str(reduced)))
+            operation(reduced, mapList[-1])
         else:
             org = reduce(operator.getitem, mapList[:-1], dataDict)[mapList[-1]]
             reduce(operator.getitem, mapList[:-1], res)[mapList[-1]] = \
