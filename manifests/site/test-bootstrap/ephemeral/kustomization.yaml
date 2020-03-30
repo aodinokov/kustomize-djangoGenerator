@@ -1,0 +1,6 @@
+resources:
+  - ../../../type/test-bootstrap
+generators:
+  - generators/secret.yaml
+transformers:
+  - ../../../function/ephemeral/transformers/secret.yaml

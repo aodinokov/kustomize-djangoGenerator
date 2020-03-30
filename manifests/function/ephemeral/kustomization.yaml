@@ -1,0 +1,4 @@
+resources:
+  - secret.yaml
+  - baremetal.yaml
+  - catalogue/secret.yaml
