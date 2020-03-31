@@ -16,16 +16,20 @@ jinjaTemplate: |
                         fn.filter_fieldEqual("metadata/name", "function-ephemeral-catalogue")
                 ),
                 fn.modify_byPath(
-                        "data/kubernetes/ca",
-                        fn.operation_set(source.data.kubernetes.get("x-ca"))
+                        "data/kubernetes/ca-cert",
+                        fn.operation_set(source.data.kubernetes.get("x-ca-cert"))
                 ),
                 fn.modify_byPath(
-                        "data/kubernetes/cert",
-                        fn.operation_set(source.data.kubernetes.get("x-cert"))
+                        "data/kubernetes/ca-key",
+                        fn.operation_set(source.data.kubernetes.get("x-ca-key"))
                 ),
                 fn.modify_byPath(
-                        "data/kubernetes/key",
-                        fn.operation_set(source.data.kubernetes.get("x-key"))
+                        "data/kubernetes/client-cert",
+                        fn.operation_set(source.data.kubernetes.get("x-client-cert"))
+                ),
+                fn.modify_byPath(
+                        "data/kubernetes/client-key",
+                        fn.operation_set(source.data.kubernetes.get("x-client-key"))
                 ),
         ) |
         yaml_dump(_all=True)
