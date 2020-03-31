@@ -1,0 +1,29 @@
+links:
+- id: oam0
+  name: oam0
+  type: phy
+  ethernet_mac_address: 52:54:00:74:b3:b0
+  mtu: "1500"
+- id: pxe0
+  name: pxe0
+  type: phy
+  ethernet_mac_address: 52:54:00:b6:ed:31
+  mtu: "1500"
+networks:
+- id: private-ipv4
+  type: ipv4
+  link: oam0
+  ip_address: 172.18.164.61
+  netmask: 255.255.255.224
+  routes:
+    - network: 0.0.0.0
+      netmask: 0.0.0.0
+      gateway: 172.18.164.33
+- id: private-ipv4
+  type: ipv4
+  link: pxe0
+  ip_address: 172.22.0.3
+  netmask: 255.255.255.0
+services:
+- address: 8.8.8.8
+  type: dns

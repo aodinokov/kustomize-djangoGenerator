@@ -1,0 +1,24 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capm3-controller-manager
+  namespace: capi-webhook-system
+spec:
+  template:
+    spec:
+      containers:
+      - image: quay.io/metal3-io/cluster-api-provider-metal3:release-0.3
+        name: manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capm3-controller-manager
+  namespace: capm3-system
+spec:
+  template:
+    spec:
+      containers:
+      - image: quay.io/metal3-io/cluster-api-provider-metal3:release-0.3
+        name: manager

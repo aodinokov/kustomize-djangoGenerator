@@ -1,0 +1,57 @@
+kind: KubeadmControlPlane
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+metadata:
+  name: cluster-controlplane
+spec:
+  replicas: 1
+  version: v1.17.0
+  infrastructureTemplate:
+    kind: Metal3MachineTemplate
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    name: cluster-controlplane
+  kubeadmConfigSpec:
+    preKubeadmCommands:
+      - echo 'ubuntu:r00tme' | chpasswd
+      - wget -O "/usr/bin/konfigadm" https://github.com/flanksource/konfigadm/releases/download/v0.5.3/konfigadm && chmod +x "/usr/bin/konfigadm"
+      - konfigadm apply --config=/konfigadm.yml
+    initConfiguration:
+      nodeRegistration:
+        name: '{{ ds.meta_data.local_hostname }}'
+        kubeletExtraArgs:
+          cloud-provider: baremetal
+    clusterConfiguration:
+      apiServer:
+        extraArgs:
+          cloud-provider: baremetal
+      controllerManager:
+        extraArgs:
+          cloud-provider: baremetal
+    joinConfiguration:
+      controlPlane: {}
+      nodeRegistration:
+        name: '{{ ds.meta_data.local_hostname }}'
+        kubeletExtraArgs:
+          cloud-provider: baremetal
+    files:
+      - path: /konfigadm.yml
+        owner: root:root
+        permissions: "0640"
+        content: |
+          kubernetes:
+            version: 1.17.3
+          container_runtime:
+            type: docker
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: Metal3MachineTemplate
+metadata:
+  name: cluster-controlplane
+spec:
+  template:
+    spec:
+      image:
+        url: https://cloud-images.ubuntu.com/xenial/20200320/xenial-server-cloudimg-amd64-disk1.img
+        checksum: b98bb51f9eaaad80f8964f061d458a72
+      hostSelector:
+        matchLabels:
+          airshipit.org/k8s-role: control
