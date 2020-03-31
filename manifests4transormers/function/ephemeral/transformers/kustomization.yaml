@@ -1,0 +1,2 @@
+resources:
+- secret-node1-bmc-secret.yaml
