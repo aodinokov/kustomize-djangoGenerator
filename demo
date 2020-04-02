@@ -16,4 +16,5 @@ echo "**************************Transformer demo 3 output**********************"
 JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins overlays/transformer3
 
 echo "**************************Demo with several layers***********************"
-JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins manifests/site/test-bootstrap/ephemeral/
+#JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins manifests/site/test-bootstrap/ephemeral/
+JINJA_DEBUG=0 XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins manifests4transormers/type/test-bootstrap/ephemeral/whole/
