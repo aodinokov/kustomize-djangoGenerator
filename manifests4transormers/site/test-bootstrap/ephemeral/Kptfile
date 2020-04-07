@@ -3,7 +3,7 @@ kind: Kptfile
 metadata:
   name: site-ephemeral
 dependencies:
-- name: ../../../type/
+- name: ../type/
   git:
     repo: https://github.com/aodinokov/kustomize-jinjaPlugin.git
     directory: manifests4transormers/type/test-bootstrap/ephemeral
