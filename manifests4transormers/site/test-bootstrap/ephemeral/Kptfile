@@ -1,0 +1,11 @@
+apiVersion: kpt.dev/v1alpha1
+kind: Kptfile
+metadata:
+  name: site-ephemeral
+dependencies:
+- name: ../../../type/
+  git:
+    repo: https://github.com/aodinokov/kustomize-jinjaPlugin.git
+    directory: manifests4transormers/type/test-bootstrap/ephemeral
+    ref: master
+
