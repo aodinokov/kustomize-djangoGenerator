@@ -6,5 +6,5 @@ dependencies:
 - name: ../function-ephemeral
   git:
     repo: https://github.com/aodinokov/kustomize-jinjaPlugin.git
-    directory: manifests4transormers/manifests4transormers/function/ephemeral
+    directory: manifests4transormers/function/ephemeral
     ref: master
